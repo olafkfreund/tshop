@@ -1,0 +1,23 @@
+# TShop Development Services
+# Use with: overmind start -f Procfile.dev
+
+# Next.js development server with Turbopack
+web: npm run dev
+
+# PostgreSQL database server
+postgres: postgres -D ./postgres-data -k /tmp -p 5432 -F
+
+# Redis cache server  
+redis: redis-server --port 6379 --dir ./redis-data --save 60 1000 --loglevel notice
+
+# Prisma Studio (database GUI) - optional
+# studio: npx prisma studio --port 5555
+
+# Stripe CLI for webhook testing (install separately)
+# stripe: stripe listen --forward-to localhost:3000/api/webhooks/stripe
+
+# Webpack bundle analyzer (optional)
+# analyzer: npm run analyze
+
+# Playwright test server (optional)
+# playwright: npx playwright test --ui

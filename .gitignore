@@ -1,0 +1,296 @@
+# TShop .gitignore
+# Comprehensive gitignore for Next.js, Node.js, and development environment
+
+# ===========================================
+# Dependencies
+# ===========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# ===========================================
+# Next.js Build Output
+# ===========================================
+.next/
+out/
+build/
+dist/
+
+# ===========================================
+# Environment Variables & Configuration
+# ===========================================
+.env
+.env*.local
+!.env.example
+.env.production
+
+# ===========================================
+# Database Files
+# ===========================================
+postgres-data/
+*.sql.backup
+backups/
+
+# ===========================================
+# Cache Directories
+# ===========================================
+redis-data/
+.turbo
+.cache/
+.npm
+.eslintcache
+.parcel-cache
+.nyc_output
+
+# ===========================================
+# Logs
+# ===========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# ===========================================
+# Runtime Data
+# ===========================================
+pids
+*.pid
+*.seed
+*.pid.lock
+lib-cov
+coverage/
+.coverage
+.nyc_output
+.grunt
+bower_components
+
+# ===========================================
+# IDE & Editor Files
+# ===========================================
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ===========================================
+# OS Generated Files
+# ===========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===========================================
+# SSL Certificates (keep structure, ignore keys)
+# ===========================================
+certs/*.pem
+certs/*.key
+certs/*.crt
+certs/*.p12
+!certs/.gitkeep
+
+# ===========================================
+# Testing
+# ===========================================
+test-results/
+playwright-report/
+playwright/.cache/
+coverage/
+.coverage
+junit.xml
+test-results.xml
+
+# ===========================================
+# Storybook
+# ===========================================
+storybook-static/
+
+# ===========================================
+# Vercel
+# ===========================================
+.vercel
+
+# ===========================================
+# TypeScript
+# ===========================================
+*.tsbuildinfo
+next-env.d.ts
+
+# ===========================================
+# ESLint
+# ===========================================
+.eslintcache
+
+# ===========================================
+# Bundle Analysis
+# ===========================================
+.bundle-analyzer/
+analyze/
+
+# ===========================================
+# Prisma
+# ===========================================
+prisma/migrations/**/*.sql
+!prisma/migrations/**/migration.sql
+
+# ===========================================
+# User Uploads (Development)
+# ===========================================
+uploads/
+public/uploads/
+tmp/
+
+# ===========================================
+# Docker
+# ===========================================
+Dockerfile.local
+docker-compose.override.yml
+.dockerignore.local
+
+# ===========================================
+# Temporary Files
+# ===========================================
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# ===========================================
+# Package Manager Lock Files (keep npm only)
+# ===========================================
+yarn.lock
+pnpm-lock.yaml
+
+# ===========================================
+# Development Tools
+# ===========================================
+.overmind.sock
+.watchmanconfig
+
+# ===========================================
+# AI/ML Model Files (if stored locally)
+# ===========================================
+*.pkl
+*.joblib
+models/
+*.h5
+*.pb
+
+# ===========================================
+# 3D Assets (large files)
+# ===========================================
+public/models/*.glb
+public/models/*.gltf
+public/textures/high-res/
+*.blend1
+*.blend2
+
+# ===========================================
+# Image Processing
+# ===========================================
+*.xcf
+*.psd
+public/images/originals/
+
+# ===========================================
+# Secrets & Keys
+# ===========================================
+*.pem
+*.key
+secrets/
+.secrets
+*.p8
+service-account.json
+
+# ===========================================
+# Local Development
+# ===========================================
+.local/
+local/
+
+# ===========================================
+# Nix (keep flake.lock for reproducible builds)
+# ===========================================
+result/
+result-*
+.direnv/
+
+# ===========================================
+# Python (for supporting scripts)
+# ===========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ===========================================
+# Rust (if using SWC or other Rust tools)
+# ===========================================
+target/
+Cargo.lock
+**/*.rs.bk
+
+# ===========================================
+# Go (if using Go tools)
+# ===========================================
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# ===========================================
+# Java (if using Java tools)
+# ===========================================
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ===========================================
+# Optional: Ignore compiled CSS from Sass/Less
+# ===========================================
+# *.css
+# *.css.map
+
+# ===========================================
+# Optional: Large Media Files
+# ===========================================
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.wmv
+*.flv
+*.webm
+
+# ===========================================
+# Keep Important Files
+# ===========================================
+!.gitkeep
+!.env.example
+!README.md
+!LICENSE
