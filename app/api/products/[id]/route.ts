@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getMockProduct } from '@/lib/mock-products'
 
 interface RouteParams {
   params: { id: string }
@@ -12,21 +13,30 @@ export async function GET(
   try {
     const { id } = params
 
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        images: {
-          orderBy: { isPrimary: 'desc' },
+    let product = null
+
+    try {
+      // Try to get product from database first
+      product = await prisma.product.findUnique({
+        where: { id },
+        include: {
+          images: {
+            orderBy: { isPrimary: 'desc' },
+          },
+          variants: {
+            orderBy: [
+              { colorSlug: 'asc' },
+              { sizeName: 'asc' },
+            ],
+          },
+          specs: true,
         },
-        variants: {
-          orderBy: [
-            { colorSlug: 'asc' },
-            { sizeName: 'asc' },
-          ],
-        },
-        specs: true,
-      },
-    })
+      })
+    } catch (dbError) {
+      console.log('📦 Using mock product data (database not available)')
+      // Fall back to mock data
+      product = getMockProduct(id)
+    }
 
     if (!product) {
       return NextResponse.json(

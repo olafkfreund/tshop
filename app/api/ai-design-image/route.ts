@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
-  const description = searchParams.get('description') || 'AI Generated Design'
-  const product = searchParams.get('product') || 'tshirt'
+  const description = searchParams.get('description') || searchParams.get('prompt') || 'AI Generated Design'
+  const product = searchParams.get('product') || searchParams.get('category') || 'tshirt'
   const style = searchParams.get('style') || 'modern'
   const seed = searchParams.get('seed') || '12345'
 

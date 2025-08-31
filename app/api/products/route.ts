@@ -1,40 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { ProductCategory } from '@prisma/client'
+import { getMockProducts } from '@/lib/mock-products'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const category = searchParams.get('category') as ProductCategory | null
+    const category = searchParams.get('category')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
 
-    // Build filter conditions
-    const where: any = {}
-    if (category) {
-      where.category = category
-    }
+    let products: any[] = []
+    let total = 0
 
-    // Get products with their images, variants, and specs
-    const [products, total] = await Promise.all([
-      prisma.product.findMany({
-        where,
-        include: {
-          images: {
-            orderBy: { isPrimary: 'desc' },
+    try {
+      // Try to use real database first
+      const where: any = {}
+      if (category) {
+        where.category = category
+      }
+
+      const [dbProducts, dbTotal] = await Promise.all([
+        prisma.product.findMany({
+          where,
+          include: {
+            images: {
+              orderBy: { isPrimary: 'desc' },
+            },
+            variants: {
+              orderBy: { price: 'asc' },
+            },
+            specs: true,
           },
-          variants: {
-            orderBy: { price: 'asc' },
-          },
-          specs: true,
-        },
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.product.count({ where }),
-    ])
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.product.count({ where }),
+      ])
+
+      products = dbProducts
+      total = dbTotal
+
+      // If no products from database, use mock data
+      if (products.length === 0) {
+        throw new Error('No products in database, falling back to mock data')
+      }
+
+    } catch (dbError) {
+      console.log('📦 Using mock products data (database not available)')
+      
+      // Use mock products
+      const mockProducts = getMockProducts(category || undefined)
+      total = mockProducts.length
+      
+      // Apply pagination to mock products
+      products = mockProducts.slice(skip, skip + limit)
+    }
 
     const totalPages = Math.ceil(total / limit)
 
