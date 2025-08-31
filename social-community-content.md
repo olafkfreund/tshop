@@ -45,12 +45,12 @@
 ### Gallery Interaction Features
 
 #### Like System
-**Call-to-Action**: "❤️ Love this design? Give it a heart!"
+**Call-to-Action**: "Love this design? Give it a heart!"
 **Milestone Messages**:
 - 10 hearts: "This design is gaining momentum!"
-- 25 hearts: "Community favorite! 🔥"
-- 50 hearts: "Design spotlight worthy! ⭐"
-- 100 hearts: "Hall of fame design! 🏆"
+- 25 hearts: "Community favorite!"
+- 50 hearts: "Design spotlight worthy!"
+- 100 hearts: "Hall of fame design!"
 
 #### Comment System
 **Engagement Prompts**:
@@ -96,22 +96,22 @@
 - Next: "Keep creating to reach Explorer level!"
 
 **Explorer** (50-199 points)
-- Badge: 🎨 "Design Explorer"  
+- Badge: "Design Explorer"  
 - Benefits: Gallery commenting, basic profile customization
 - Next: "You're discovering your style! Artist level awaits."
 
 **Artist** (200-499 points)
-- Badge: 🖌️ "Community Artist"
+- Badge: "Community Artist"
 - Benefits: Featured design opportunities, challenge participation
 - Next: "Your creativity is inspiring! Aim for Creator status."
 
 **Creator** (500-999 points)
-- Badge: ⭐ "Established Creator"
+- Badge: "Established Creator"
 - Benefits: Design contest judging, community spotlight features
 - Next: "You're a community leader! Master level is within reach."
 
 **Master** (1000-2499 points)
-- Badge: 🏆 "Design Master"
+- Badge: "Design Master"
 - Benefits: Beta feature access, community moderator privileges
 - Next: "Excellence recognized! Legend status beckons."
 
@@ -189,7 +189,7 @@ Visual badges displayed on profiles and in community
 
 #### Design Showcase
 **Caption Template**:
-"✨ Amazing creation by @[username]! 
+"Amazing creation by @[username]! 
 
 This [product] design perfectly captures [design theme/mood]. We love how they used [specific design elements] to create something truly unique.
 
@@ -199,7 +199,7 @@ What would you design? Drop your ideas in the comments! 👇
 
 #### User Generated Content
 **Caption Template**:  
-"🔥 @[username] is rocking their custom TShop creation! 
+"@[username] is rocking their custom TShop creation! 
 
 From idea to AI design to reality - this is what happens when creativity meets technology. 
 
@@ -209,7 +209,7 @@ Show us how you're wearing your TShop designs! Tag us for a chance to be feature
 
 #### Tutorial Content
 **Caption Template**:
-"💡 Design Tip Tuesday: [Tip Title]
+"Design Tip Tuesday: [Tip Title]
 
 [Detailed tip explanation with specific examples]
 
@@ -222,26 +222,26 @@ What design tips do you want to see next?
 ### Twitter/X Post Templates
 
 #### Community Highlights
-"🎨 Community spotlight: @[username] just created this incredible [product] design using AI! The detail and creativity is amazing. 
+"Community spotlight: @[username] just created this incredible [product] design using AI! The detail and creativity is amazing. 
 
 What would you design today? Try @TShopAI free ➡️ [link]
 
 #AIDesign #CustomApparel #CreativeAI"
 
 #### Design Challenges
-"🏆 This week's design challenge: [Challenge Theme]
+"This week's design challenge: [Challenge Theme]
 
 Create your interpretation and tag us for a chance to win Premium!
 
 Rules: [Brief rules]
 Deadline: [Date]
 
-Ready to show your creativity? 🚀
+Ready to show your creativity?
 
 #DesignChallenge #TShopCommunity #AIDesign"
 
 #### Tips and Education
-"💡 AI Design Tip: The more specific your prompt, the better your results!
+"AI Design Tip: The more specific your prompt, the better your results!
 
 Instead of: "cool design"
 Try: "minimalist mountain landscape in navy blue with bold white text"
@@ -256,10 +256,10 @@ What's your best design prompt? Share below! 👇"
 
 With AI-powered design tools like TShop, small businesses can create professional merchandise in minutes:
 
-✅ No design skills required
-✅ Professional results guaranteed  
-✅ 3D preview before printing
-✅ Flexible pricing options
+- No design skills required
+- Professional results guaranteed  
+- 3D preview before printing
+- Flexible pricing options
 
 Perfect for:
 • Employee uniforms
@@ -311,11 +311,11 @@ Custom branding has never been more accessible. What's your brand story?"
 - Celebrating diversity in design
 
 **Acceptable Content**:
-✅ Original creative designs
-✅ Respectful comments and feedback
-✅ Constructive design criticism
-✅ Sharing design inspiration
-✅ Celebrating others' work
+- Original creative designs
+- Respectful comments and feedback
+- Constructive design criticism
+- Sharing design inspiration
+- Celebrating others' work
 
 **Not Allowed**:
 ❌ Copyrighted material or logos

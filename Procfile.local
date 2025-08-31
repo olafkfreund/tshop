@@ -1,0 +1,2 @@
+web: npm run dev
+mock: python scripts/mock-services.py

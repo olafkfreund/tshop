@@ -59,24 +59,24 @@ Hi [First Name],
 
 Ready to level up your design game? Here are the insider secrets our best designers use to create showstopping custom apparel:
 
-**🎯 Tip #1: Be Specific with Colors**
+**Tip #1: Be Specific with Colors**
 Instead of "blue design," try "ocean blue with white accents" or "navy blue with gold highlights." Our AI loves color details!
 
-**🎨 Tip #2: Include Mood and Style**
+**Tip #2: Include Mood and Style**
 Add feeling words like "minimalist and clean," "vintage and weathered," or "bold and energetic" to guide the AI's creative direction.
 
-**✨ Tip #3: Perfect Your Text**
+**Tip #3: Perfect Your Text**
 Put any text you want in quotes: "Adventure Awaits" or "Coffee & Kindness" - this ensures perfect spelling and placement.
 
-**💡 Bonus Tip**: Try multiple variations! Each generation gives you a unique interpretation of your idea.
+**Bonus Tip**: Try multiple variations! Each generation gives you a unique interpretation of your idea.
 
 **[CTA Button: Try These Tips Now]**
 
 **This Week's Trending Designs:**
-🔥 Sunset mountain landscapes with inspirational quotes
-🔥 Vintage-style coffee and tea designs
-🔥 Minimalist line art animals and plants
-🔥 Geometric patterns in earth tones
+- Sunset mountain landscapes with inspirational quotes
+- Vintage-style coffee and tea designs
+- Minimalist line art animals and plants
+- Geometric patterns in earth tones
 
 **Ready to Create?** You have [X remaining] generations available today.
 
@@ -100,7 +100,7 @@ Hi [First Name],
 
 This week, our community created over 2,000 unique designs! Want to see what's possible and get inspired for your next creation?
 
-**🏆 Community Highlights This Week:**
+**Community Highlights This Week:**
 • Sarah's minimalist plant design earned 150 community hearts
 • Mike's vintage band logo got featured in our newsletter  
 • Lisa's motivational quote design inspired 50+ variations
@@ -115,15 +115,15 @@ Every design you create earns points. Share designs in our gallery to earn bonus
 • Designs Created: [X]
 • Next Achievement: [Achievement Name]
 
-**🎨 Gallery Challenge**: This month's theme is "Positive Vibes" - create uplifting designs and earn double points!
+**Gallery Challenge**: This month's theme is "Positive Vibes" - create uplifting designs and earn double points!
 
 **[CTA Button: Join Gallery Challenge]**
 
 **Quick Stats:**
-📈 10,000+ community designs shared
-🌟 500+ daily active creators
-🎯 25+ countries represented
-❤️ 4.8/5 average community rating
+- 10,000+ community designs shared
+- 500+ daily active creators
+- 25+ countries represented
+- 4.8/5 average community rating
 
 Ready to add your creativity to the mix?
 
@@ -143,7 +143,7 @@ The TShop Community Team
 
 **Email Content**:
 
-**Headline**: You're on Fire Today! 🔥
+**Headline**: You're on Fire Today!
 
 Hi [First Name],
 
@@ -220,13 +220,13 @@ The TShop Team
 ### First Design Complete
 
 **Subject Lines**:
-- "🎉 You did it! Your first AI design is amazing"
+- "You did it! Your first AI design is amazing"
 - "Achievement unlocked: First Creation!"
 - "Welcome to the creator club!"
 
 **Email Content**:
 
-**Headline**: 🏆 Achievement Unlocked: First Creation!
+**Headline**: Achievement Unlocked: First Creation!
 
 Hi [First Name],
 
@@ -249,9 +249,9 @@ Congratulations! You just completed your first AI-powered design, and we think i
 **[CTA Button: Preview in 3D]**
 
 **You've Earned:**
-🏅 "First Creation" badge
-⭐ 100 community points
-🎨 Designer status in your profile
+- "First Creation" badge
+- 100 community points
+- Designer status in your profile
 
 **Ready for Your Next Creation?** You have [X] generations remaining today.
 
@@ -309,13 +309,13 @@ The TShop Fulfillment Team
 ### Email 2: Shipping Notification
 
 **Subject Lines**:
-- "📦 Your TShop creation is on its way!"
+- "Your TShop creation is on its way!"
 - "Shipped! Your custom [product] is coming"
 - "Track your package - delivery in [X] days"
 
 **Email Content**:
 
-**Headline**: 📦 Your Order Has Shipped!
+**Headline**: Your Order Has Shipped!
 
 Hi [First Name],
 
@@ -363,7 +363,7 @@ Your custom [product] should have arrived! We're excited to know - how does it l
 
 **Quick Feedback:**
 How would you rate your TShop experience?
-[⭐⭐⭐⭐⭐ Rating buttons]
+[5-star Rating buttons]
 
 **Share Your Style:**
 We'd love to see you wearing your creation! Share a photo on social media and tag @TShopAI for a chance to:
@@ -409,8 +409,8 @@ Hi [First Name],
 This week's design challenge theme is **"[Theme]"** and we can't wait to see your creative interpretation!
 
 **Challenge Details:**
-🎯 **Theme**: [Detailed theme description]
-🏆 **Prize**: 3 months of Premium for the winner
+**Theme**: [Detailed theme description]
+**Prize**: 3 months of Premium for the winner
 ⏰ **Deadline**: [Date and time]
 👥 **Judging**: Community voting + TShop team selection
 
@@ -454,7 +454,7 @@ Hi [First Name],
 
 Fall is the perfect time to create cozy, seasonal custom apparel. Here's what's trending this autumn:
 
-**🔥 Hot Fall Design Trends:**
+**Hot Fall Design Trends:**
 • **Warm Color Palettes**: Orange, burgundy, forest green, golden yellow
 • **Cozy Quotes**: "Sweater Weather," "Autumn Vibes," "Falling for Fall"
 • **Nature Themes**: Falling leaves, pine trees, mountain landscapes

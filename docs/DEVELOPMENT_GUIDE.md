@@ -52,12 +52,12 @@ After setup, verify your environment:
 just health
 
 # Expected output:
-# ✅ Node.js: v22.x.x
-# ✅ PostgreSQL: Running  
-# ✅ Redis: Running
-# ✅ SSL certificates: Present
-# ✅ Environment: .env.local exists
-# ✅ Git: Repository initialized
+# Node.js: v22.x.x
+# PostgreSQL: Running  
+# Redis: Running
+# SSL certificates: Present
+# Environment: .env.local exists
+# Git: Repository initialized
 ```
 
 ## Development Workflow

@@ -1,0 +1,283 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  role      String @default("CUSTOMER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // AI usage tracking
+  aiUsage AIUsageStats?
+
+  // Relations
+  accounts Account[]
+  sessions Session[]
+  orders   Order[]
+  designs  Design[]
+  cartItems CartItem[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// AI Usage tracking
+model AIUsageStats {
+  id          String    @id @default(cuid())
+  userId      String    @unique @map("user_id")
+  dailyCount  Int       @default(0) @map("daily_count")
+  monthlyCount Int      @default(0) @map("monthly_count") 
+  totalCount  Int       @default(0) @map("total_count")
+  lastReset   DateTime  @default(now()) @map("last_reset")
+  tier        String    @default("FREE")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_usage_stats")
+}
+
+// Product models
+model Product {
+  id          String          @id @default(cuid())
+  name        String
+  description String
+  category    String
+  basePrice   Decimal         @map("base_price")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  images      ProductImage[]
+  variants    ProductVariant[]
+  specs       ProductSpecs?
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String  @map("product_id")
+  url       String
+  altText   String  @map("alt_text")
+  isPrimary Boolean @default(false) @map("is_primary")
+  angle     String? // front, back, side, detail
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id         String      @id @default(cuid())
+  productId  String      @map("product_id")
+  name       String
+  sku        String      @unique
+  price      Decimal
+  colorName  String      @map("color_name")
+  colorHex   String      @map("color_hex")
+  colorSlug  String      @map("color_slug")
+  sizeName   String?     @map("size_name")
+  sizeSlug   String?     @map("size_slug")
+  stock      Int         @default(0)
+  printfulId String?     @map("printful_id")
+  printifyId String?     @map("printify_id")
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  cartItems  CartItem[]
+
+  @@map("product_variants")
+}
+
+model ProductSpecs {
+  id        String @id @default(cuid())
+  productId String @unique @map("product_id")
+  material  String
+  care      String // JSON string array of care instructions
+  sizing    String
+
+  // Print areas (stored as JSON text)
+  printAreaFront String  @map("print_area_front")
+  printAreaBack  String? @map("print_area_back")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_specs")
+}
+
+// Design models
+model Design {
+  id          String         @id @default(cuid())
+  userId      String?        @map("user_id")
+  name        String
+  description String?
+  prompt      String? // Original AI prompt if AI-generated
+  imageUrl    String         @map("image_url")
+  category    String
+  tags        String // JSON string array
+  isPublic    Boolean        @default(false) @map("is_public")
+  usageCount  Int            @default(0) @map("usage_count")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  orderItems OrderItem[]
+
+  @@map("designs")
+}
+
+// Order models
+model Order {
+  id        String      @id @default(cuid())
+  userId    String?     @map("user_id")
+  status    String @default("PENDING")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  // Order totals
+  subtotal    Decimal
+  shipping    Decimal
+  tax         Decimal
+  discount    Decimal @default(0)
+  total       Decimal
+
+  // Address information (stored as JSON text)
+  shippingAddress String @map("shipping_address")
+  billingAddress  String @map("billing_address")
+
+  // Relations
+  user        User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items       OrderItem[]
+  fulfillment FulfillmentOrder[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String  @map("order_id")
+  productId  String  @map("product_id")
+  variantId  String  @map("variant_id")
+  designId   String? @map("design_id")
+  quantity   Int
+  unitPrice  Decimal @map("unit_price")
+  totalPrice Decimal @map("total_price")
+
+  // Customization data (stored as JSON text)
+  customization String?
+
+  // Relations
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+  design  Design?        @relation(fields: [designId], references: [id], onDelete: SetNull)
+
+  @@map("order_items")
+}
+
+// Fulfillment tracking
+model FulfillmentOrder {
+  id                String              @id @default(cuid())
+  orderId           String              @map("order_id")
+  provider          String
+  externalOrderId   String?             @map("external_order_id")
+  status            String   @default("PENDING")
+  trackingNumber    String?             @map("tracking_number")
+  trackingUrl       String?             @map("tracking_url")
+  estimatedDelivery DateTime?           @map("estimated_delivery")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("fulfillment_orders")
+}
+
+// Cart models
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  sessionId String?  @map("session_id") // For guest users
+  productId String   @map("product_id")
+  variantId String   @map("variant_id")
+  designId  String?  @map("design_id")
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Customization data (stored as JSON text)
+  customization String?
+
+  // Relations
+  user    User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("cart_items")
+}
+
+// Note: SQLite doesn't support enums, using strings with validation in app code
+// Valid values:
+// UserRole: "CUSTOMER", "DESIGNER", "ADMIN"
+// AITier: "FREE", "REGISTERED", "PREMIUM"  
+// ProductCategory: "TSHIRT", "CAP", "TOTE_BAG"
+// DesignCategory: "TEXT", "GRAPHIC", "LOGO", "ARTWORK", "PATTERN"
+// OrderStatus: "PENDING", "PROCESSING", "PRINTED", "SHIPPED", "DELIVERED", "CANCELLED"
+// FulfillmentProvider: "PRINTFUL", "PRINTIFY"
+// FulfillmentStatus: "PENDING", "PROCESSING", "PRINTED", "SHIPPED", "DELIVERED", "CANCELLED", "FAILED"

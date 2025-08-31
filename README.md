@@ -8,22 +8,22 @@
 [![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)](https://postgresql.org/)
 
-## 🎨 About TShop
+## About TShop
 
 TShop is an AI-powered custom apparel platform that allows users to create unique designs using artificial intelligence, visualize them in 3D, and order custom products. Built with modern web technologies and a focus on performance, security, and user experience.
 
-### ✨ Key Features
+### Key Features
 
-- **🤖 AI Design Generation**: Create unique designs with Google Gemini AI
-- **🎨 Interactive Design Editor**: Powered by Fabric.js with real-time editing
-- **📱 3D/AR Visualization**: Three.js and WebXR for immersive product preview
-- **🛒 E-commerce Integration**: Complete shopping cart and checkout with Stripe
-- **🌍 Multi-Provider Fulfillment**: Printful (premium) and Printify (cost-effective)
-- **🎮 Gamification**: Points, achievements, and social features
-- **🌐 Internationalization**: Support for multiple languages and currencies
-- **📱 Progressive Web App**: Optimized for mobile and desktop
+- **AI Design Generation**: Create unique designs with Google Gemini AI
+- **Interactive Design Editor**: Powered by Fabric.js with real-time editing
+- **3D/AR Visualization**: Three.js and WebXR for immersive product preview
+- **E-commerce Integration**: Complete shopping cart and checkout with Stripe
+- **Multi-Provider Fulfillment**: Printful (premium) and Printify (cost-effective)
+- **Gamification**: Points, achievements, and social features
+- **Internationalization**: Support for multiple languages and currencies
+- **Progressive Web App**: Optimized for mobile and desktop
 
-## 🏗️ Architecture
+## Architecture
 
 ### Tech Stack
 
@@ -48,7 +48,7 @@ This project uses **NixOS Flakes** for a completely reproducible development env
 - Pre-commit hooks for code quality
 - Complete toolchain for testing and deployment
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -114,7 +114,7 @@ just dev-db         # Start only database services
 - **Database Studio**: http://localhost:5555 (run `just db-studio`)
 - **API Documentation**: https://localhost:3000/api-docs
 
-## 🛠️ Development Commands
+## Development Commands
 
 We use [just](https://github.com/casey/just) as our command runner. Here are the most common commands:
 
@@ -167,7 +167,7 @@ just deploy         # Deploy to Vercel production
 just deploy-staging # Deploy to Vercel staging
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 tshop/
@@ -218,7 +218,7 @@ tshop/
 └── redis-data/                    # Redis data directory
 ```
 
-## 🔧 Configuration Details
+## Configuration Details
 
 ### Environment Variables
 
@@ -251,7 +251,7 @@ The PostgreSQL database includes comprehensive schemas for:
 - Social features (likes, shares)
 - Analytics and usage tracking
 
-## 🧪 Testing Strategy
+## Testing Strategy
 
 ### Unit Testing
 - **Framework**: Jest with React Testing Library
@@ -268,7 +268,7 @@ The PostgreSQL database includes comprehensive schemas for:
 - **Coverage**: Key user interface components
 - **CI/CD**: Automated on pull requests
 
-## 🚀 Deployment
+## Deployment
 
 ### Development Workflow
 1. Make changes in feature branches
@@ -291,7 +291,7 @@ The NixOS module included in `flake.nix` provides:
 - Database and Redis setup
 - Service hardening and monitoring
 
-## 📊 Performance Optimizations
+## Performance Optimizations
 
 ### Frontend Performance
 - **Code Splitting**: Route and component-level splitting
@@ -305,7 +305,7 @@ The NixOS module included in `flake.nix` provides:
 - **API**: Rate limiting and request optimization
 - **AI**: Smart model selection for cost efficiency
 
-## 🔒 Security Features
+## Security Features
 
 ### Application Security
 - **Authentication**: Secure JWT with NextAuth.js
@@ -319,7 +319,7 @@ The NixOS module included in `flake.nix` provides:
 - **Secrets**: Environment-based secret management
 - **Database**: Connection encryption and access control
 
-## 🤝 Contributing
+## Contributing
 
 ### Development Setup
 1. Fork the repository
@@ -341,14 +341,14 @@ The NixOS module included in `flake.nix` provides:
 - Visual regression tests for UI changes
 - Performance testing for optimization
 
-## 📚 Documentation
+## Documentation
 
 - **Technical Specs**: [FRONTEND_TECHNICAL_SPECS.md](./FRONTEND_TECHNICAL_SPECS.md)
 - **Backend Architecture**: [BACKEND_ARCHITECTURE_SPECS.md](./BACKEND_ARCHITECTURE_SPECS.md)
 - **API Documentation**: Available at `/api-docs` when running
 - **Component Documentation**: Storybook at `/storybook`
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -387,11 +387,11 @@ just dev-clean-processes
 3. Open an issue on GitHub
 4. Join our Discord community
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **NixOS Community** for the incredible package manager and ecosystem
 - **Next.js Team** for the outstanding React framework
@@ -401,4 +401,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using NixOS, Next.js, and modern web technologies**
+**Built using NixOS, Next.js, and modern web technologies**

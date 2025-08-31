@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Main TShop application
+  tshop:
+    build:
+      context: .
+      target: development
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=file:./data/tshop_dev.db
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=local-development-secret-key
+      - GOOGLE_GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MOCK_API_URL=http://mock-services:8080
+      - USE_LOCAL_STORAGE=true
+      - LOCAL_MODE=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+      - ./data:/app/data
+      - ./public:/app/public
+    depends_on:
+      - mock-services
+    command: >
+      sh -c "
+        echo '🚀 Starting development server...' &&
+        npm run dev
+      "
+
+  # Mock API services
+  mock-services:
+    build:
+      context: .
+      target: development
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      - ./scripts:/app/scripts
+      - ./public:/app/public
+    command: python3 scripts/mock-services.py
+
+  # Database management (Prisma Studio)
+  prisma-studio:
+    build:
+      context: .
+      target: development
+    ports:
+      - "5555:5555"
+    environment:
+      - DATABASE_URL=file:./data/tshop_dev.db
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    command: npx prisma studio --port 5555
+    depends_on:
+      - tshop
