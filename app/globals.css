@@ -4,26 +4,38 @@
 
 @layer base {
   :root {
+    /* Light theme */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    /* TShop Brand Colors - Light Theme */
+    --primary: 221.2 83.2% 53.3%;  /* Blue brand color */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+    
+    /* TShop specific brand colors */
+    --coral: 14 86% 66%;  /* #FF6B47 */
+    --coral-foreground: 0 0% 98%;
+    --success: 142 76% 36%;  /* #10B981 */
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;  /* #F59E0B */
+    --warning-foreground: 0 0% 98%;
     
     /* Custom TShop variables */
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -31,25 +43,37 @@
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    /* Dark theme */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* TShop Brand Colors - Dark Theme */
+    --primary: 217.2 91.2% 59.8%;  /* Brighter blue for dark mode */
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 217.2 91.2% 59.8%;
+    
+    /* TShop specific brand colors - Dark theme */
+    --coral: 14 86% 66%;  /* Same coral color */
+    --coral-foreground: 222.2 84% 4.9%;
+    --success: 142 76% 46%;  /* Slightly brighter green */
+    --success-foreground: 222.2 84% 4.9%;
+    --warning: 38 92% 60%;  /* Slightly brighter yellow */
+    --warning-foreground: 222.2 84% 4.9%;
   }
 
   * {
@@ -73,43 +97,76 @@
 @layer components {
   /* Button Components */
   .btn {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer select-none;
   }
 
+  /* Primary button (most important actions) */
+  .btn-primary {
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/95 shadow-sm hover:shadow-md h-10 px-4 py-2;
+  }
+
+  /* Default button (same as primary for compatibility) */
   .btn-default {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/95 shadow-sm hover:shadow-md h-10 px-4 py-2;
   }
 
-  .btn-destructive {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90 h-10 px-4 py-2;
-  }
-
-  .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2;
-  }
-
+  /* Secondary button (less prominent actions) */
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2;
+    @apply btn bg-secondary text-secondary-foreground hover:bg-secondary/80 active:bg-secondary/90 h-10 px-4 py-2;
   }
 
+  /* Outline button (neutral actions) */
+  .btn-outline {
+    @apply btn border border-input bg-background hover:bg-accent hover:text-accent-foreground active:bg-accent/90 h-10 px-4 py-2;
+  }
+
+  /* Ghost button (minimal presence) */
   .btn-ghost {
-    @apply hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2;
+    @apply btn hover:bg-accent hover:text-accent-foreground active:bg-accent/90 h-10 px-4 py-2;
   }
 
+  /* Link button (appears as link) */
   .btn-link {
-    @apply text-primary underline-offset-4 hover:underline h-10 px-4 py-2;
+    @apply btn text-primary underline-offset-4 hover:underline h-auto px-0 py-0 font-normal;
   }
 
+  /* Destructive button (dangerous actions) */
+  .btn-destructive {
+    @apply btn bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/95 shadow-sm hover:shadow-md h-10 px-4 py-2;
+  }
+
+  /* Brand specific buttons */
+  .btn-coral {
+    @apply btn bg-[hsl(var(--coral))] text-[hsl(var(--coral-foreground))] hover:bg-[hsl(var(--coral))]/90 active:bg-[hsl(var(--coral))]/95 shadow-sm hover:shadow-md h-10 px-4 py-2;
+  }
+
+  .btn-success {
+    @apply btn bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))]/90 active:bg-[hsl(var(--success))]/95 shadow-sm hover:shadow-md h-10 px-4 py-2;
+  }
+
+  /* Button sizes */
   .btn-sm {
-    @apply h-9 rounded-md px-3;
+    @apply h-9 rounded-md px-3 text-xs;
   }
 
   .btn-lg {
-    @apply h-11 rounded-md px-8;
+    @apply h-11 rounded-md px-8 text-base;
+  }
+
+  .btn-xl {
+    @apply h-12 rounded-lg px-10 text-lg;
   }
 
   .btn-icon {
-    @apply h-10 w-10;
+    @apply h-10 w-10 p-0;
+  }
+
+  .btn-icon-sm {
+    @apply h-8 w-8 p-0;
+  }
+
+  .btn-icon-lg {
+    @apply h-12 w-12 p-0;
   }
 
   /* Input Components */

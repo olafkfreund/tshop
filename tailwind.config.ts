@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: ['class'],
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -61,6 +62,28 @@ const config: Config = {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
+        },
+        // TShop brand colors
+        coral: {
+          DEFAULT: 'hsl(var(--coral))',
+          foreground: 'hsl(var(--coral-foreground))',
+          100: '#ffe7e0',
+          200: '#ffc7b8',
+          300: '#ffa48f',
+          400: '#ff8267',
+          500: '#ff6b47', // Primary coral
+          600: '#e6472a',
+          700: '#cc3318',
+          800: '#b32410',
+          900: '#99190a',
+        },
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
         },
       },
       borderRadius: {

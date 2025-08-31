@@ -3,6 +3,7 @@ import { Inter, Poppins } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import AuthSessionProvider from '@/components/providers/session-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
 
 const inter = Inter({
@@ -83,11 +84,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <AuthSessionProvider>
-          {children}
-        </AuthSessionProvider>
+        <ThemeProvider>
+          <AuthSessionProvider>
+            {children}
+          </AuthSessionProvider>
+        </ThemeProvider>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, X, ShoppingCart, User, LogIn, LogOut } from 'lucide-react'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -46,11 +47,14 @@ export default function Header() {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Cart */}
             <Link
               href="/cart"
-              className="text-gray-700 hover:text-primary-600 p-2 relative"
+              className="btn-ghost btn-icon"
             >
               <ShoppingCart className="h-5 w-5" />
               {/* Cart badge would go here */}
@@ -145,18 +149,24 @@ export default function Header() {
               ))}
               
               <div className="border-t pt-4 mt-4">
+                {/* Theme Toggle for Mobile */}
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-base font-medium">Theme</span>
+                  <ThemeToggle />
+                </div>
+
                 {session ? (
                   <>
                     <Link
                       href="/dashboard"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
+                      className="nav-link block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/cart"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
+                      className="nav-link block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Cart
@@ -166,7 +176,7 @@ export default function Header() {
                         signOut()
                         setIsMenuOpen(false)
                       }}
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium w-full text-left"
+                      className="nav-link block px-3 py-2 text-base font-medium w-full text-left"
                     >
                       Sign Out
                     </button>
@@ -175,14 +185,14 @@ export default function Header() {
                   <>
                     <Link
                       href="/auth/signin"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
+                      className="nav-link block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/cart"
-                      className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
+                      className="nav-link block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Cart
