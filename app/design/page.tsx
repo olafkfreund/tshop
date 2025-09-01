@@ -38,15 +38,29 @@ export default function DesignPage() {
   const handleEditDesign = () => {
     if (!generatedDesign) return
     
-    // Navigate to advanced editor with design
+    // Navigate to advanced editor with design data preserved
     const params = new URLSearchParams({
       category: selectedProduct,
       design: generatedDesign.imageUrl,
+      prompt: generatedDesign.prompt || '',
     })
     
     if (generatedDesign.designId) {
-      params.set('template', generatedDesign.designId)
+      params.set('designId', generatedDesign.designId)
     }
+    
+    if (generatedDesign.metadata) {
+      params.set('metadata', JSON.stringify(generatedDesign.metadata))
+    }
+    
+    // Store design data in session storage for the editor to access
+    sessionStorage.setItem('editingDesign', JSON.stringify({
+      imageUrl: generatedDesign.imageUrl,
+      designId: generatedDesign.designId,
+      prompt: generatedDesign.prompt,
+      productCategory: selectedProduct,
+      metadata: generatedDesign.metadata
+    }))
     
     window.open(`/editor?${params.toString()}`, '_blank')
   }
@@ -58,11 +72,11 @@ export default function DesignPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
+      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground py-16">
         <div className="container mx-auto px-4
                         sm:px-6
                         lg:px-8">
@@ -114,19 +128,19 @@ export default function DesignPage() {
         
         {/* Product Selection */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4 text-center">
             Choose Your Product
           </h2>
           <div className="flex justify-center">
-            <div className="inline-flex bg-white border rounded-lg p-1">
+            <div className="inline-flex bg-card border rounded-lg p-1">
               {Object.entries(PRODUCT_CATEGORIES).map(([key, value]) => (
                 <button
                   key={key}
                   onClick={() => setSelectedProduct(key as ProductCategory)}
                   className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
                     selectedProduct === key
-                      ? 'bg-primary-600 text-white'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted'
                   }`}
                 >
                   {value}
@@ -160,15 +174,15 @@ export default function DesignPage() {
               />
             ) : (
               <div className="card p-8 text-center">
-                <div className="mx-auto h-24 w-24 text-gray-300 mb-4">
+                <div className="mx-auto h-24 w-24 text-muted-foreground/30 mb-4">
                   <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   Your Design Will Appear Here
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Describe your design idea in the form to the left and click "Generate Design" to see your AI-created design preview.
                 </p>
               </div>
@@ -184,39 +198,39 @@ export default function DesignPage() {
         />
 
         {/* Additional Info */}
-        <div className="mt-16 bg-white rounded-lg p-8 border">
+        <div className="mt-16 bg-card rounded-lg p-8 border">
           <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <h3 className="text-xl font-bold text-foreground mb-4">
               How AI Design Generation Works
             </h3>
             <div className="grid grid-cols-1 gap-6 mt-8
                             md:grid-cols-3">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary-100 rounded-full text-primary-600 font-bold mb-3">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full text-primary font-bold mb-3">
                   1
                 </div>
-                <h4 className="font-semibold mb-2">Describe Your Vision</h4>
-                <p className="text-sm text-gray-600">
+                <h4 className="font-semibold mb-2 text-foreground">Describe Your Vision</h4>
+                <p className="text-sm text-muted-foreground">
                   Tell our AI what you want - colors, themes, styles, or specific elements
                 </p>
               </div>
               
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary-100 rounded-full text-primary-600 font-bold mb-3">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full text-primary font-bold mb-3">
                   2
                 </div>
-                <h4 className="font-semibold mb-2">AI Creates Design</h4>
-                <p className="text-sm text-gray-600">
+                <h4 className="font-semibold mb-2 text-foreground">AI Creates Design</h4>
+                <p className="text-sm text-muted-foreground">
                   Advanced AI generates a unique design optimized for your chosen product
                 </p>
               </div>
               
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary-100 rounded-full text-primary-600 font-bold mb-3">
+                <div className="inline-flex items-center justify-center w-10 h-10 bg-primary/10 rounded-full text-primary font-bold mb-3">
                   3
                 </div>
-                <h4 className="font-semibold mb-2">Customize & Order</h4>
-                <p className="text-sm text-gray-600">
+                <h4 className="font-semibold mb-2 text-foreground">Customize & Order</h4>
+                <p className="text-sm text-muted-foreground">
                   Edit if needed, preview on products, then add to cart for printing
                 </p>
               </div>

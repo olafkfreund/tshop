@@ -1,4 +1,5 @@
 import * as fabric from 'fabric'
+import { FabricImage } from 'fabric'
 
 // Ensure fabric is loaded in browser context
 if (typeof window !== 'undefined' && !fabric) {
@@ -156,30 +157,32 @@ export class DesignCanvas {
     if (!this.canvas) return null
 
     return new Promise((resolve, reject) => {
-      fabric.Image.fromURL(imageUrl, (img) => {
+      FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' }).then((img) => {
         if (!img || !this.canvas) {
           reject(new Error('Failed to load image'))
           return
         }
 
+        // Calculate scale to fit within reasonable bounds but keep it larger
+        const maxSize = 300 // Increased from 200 to make images bigger
+        const scale = Math.min(maxSize / (img.width || 1), maxSize / (img.height || 1))
+        
         img.set({
           left: this.canvas.width! / 2,
           top: this.canvas.height! / 2,
           originX: 'center',
           originY: 'center',
-          ...options,
+          scaleX: scale,
+          scaleY: scale,
+          ...options, // This will override scale if provided in options
         })
-
-        // Scale image to fit within reasonable bounds
-        const maxSize = 200
-        const scale = Math.min(maxSize / img.width!, maxSize / img.height!)
-        img.scale(scale)
 
         this.canvas.add(img)
         this.canvas.setActiveObject(img)
+        this.canvas.renderAll()
         resolve(img)
-      }, {
-        crossOrigin: 'anonymous',
+      }).catch((error) => {
+        reject(error)
       })
     })
   }

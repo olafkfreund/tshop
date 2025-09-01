@@ -56,11 +56,12 @@ export default function EditorPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Load initial data from URL params
+  // Load initial data from URL params and session storage
   useEffect(() => {
     const category = searchParams?.get('category') as ProductCategory
     const color = searchParams?.get('color')
     const templateId = searchParams?.get('template')
+    const designParam = searchParams?.get('design')
     
     if (category && Object.keys(PRODUCT_CATEGORIES).includes(category)) {
       setProductCategory(category)
@@ -68,6 +69,28 @@ export default function EditorPage() {
     
     if (color) {
       setSelectedColor(color)
+    }
+    
+    // Check for AI design data from session storage
+    const storedDesign = sessionStorage.getItem('editingDesign')
+    if (storedDesign) {
+      try {
+        const designData = JSON.parse(storedDesign)
+        console.log('Loading AI design for editing:', designData)
+        
+        // Set initial design image
+        if (designData.imageUrl) {
+          setDesignDataUrl(designData.imageUrl)
+        }
+        
+        // Clear session storage after loading
+        sessionStorage.removeItem('editingDesign')
+      } catch (error) {
+        console.error('Error loading design from session storage:', error)
+      }
+    } else if (designParam) {
+      // Load design from URL parameter
+      setDesignDataUrl(designParam)
     }
     
     if (templateId) {
@@ -329,6 +352,7 @@ export default function EditorPage() {
         <div className="flex-1">
           <CanvasEditor
             productCategory={productCategory}
+            initialDesign={designDataUrl}
             onDesignChange={handleDesignChange}
           />
         </div>

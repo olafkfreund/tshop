@@ -19,7 +19,7 @@ function TShirtModel({ designImageUrl, color = '#FFFFFF', style = 'regular' }: {
   color: string
   style: 'regular' | 'slim' | 'oversized'
 }) {
-  const meshRef = useRef<THREE.Mesh>(null)
+  const groupRef = useRef<THREE.Group>(null)
   const designRef = useRef<THREE.Mesh>(null)
   
   // Load design texture
@@ -42,8 +42,8 @@ function TShirtModel({ designImageUrl, color = '#FFFFFF', style = 'regular' }: {
 
   // Animate rotation
   useFrame((state, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.3
+    if (groupRef.current) {
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.3
     }
   })
 
@@ -59,60 +59,64 @@ function TShirtModel({ designImageUrl, color = '#FFFFFF', style = 'regular' }: {
   const [scaleX, scaleY, scaleZ] = getGeometryScale()
 
   return (
-    <group>
-      {/* Main T-shirt body */}
-      <mesh ref={meshRef} position={[0, 0, 0]} scale={[scaleX, scaleY, scaleZ]}>
-        {/* Body */}
-        <boxGeometry args={[2, 2.5, 0.1]} />
+    <group ref={groupRef} scale={[scaleX, scaleY, scaleZ]}>
+      {/* Main T-shirt body - simplified plane approach */}
+      <mesh position={[0, 0, 0]}>
+        <planeGeometry args={[2.2, 2.8, 10, 10]} />
         <meshStandardMaterial
           color={color}
-          roughness={0.7}
-          metalness={0.1}
+          roughness={0.8}
+          metalness={0.05}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Sleeves */}
-      <mesh position={[-1.2 * scaleX, 0.3, 0]} scale={[0.3, 0.8, 0.1]}>
-        <boxGeometry args={[2, 1.5, 1]} />
+      {/* Left Sleeve */}
+      <mesh position={[-1.3, 0.3, -0.05]} rotation={[0, 0, -0.3]}>
+        <planeGeometry args={[0.8, 1.2, 5, 5]} />
         <meshStandardMaterial
           color={color}
-          roughness={0.7}
-          metalness={0.1}
+          roughness={0.8}
+          metalness={0.05}
+          side={THREE.DoubleSide}
         />
       </mesh>
-      
-      <mesh position={[1.2 * scaleX, 0.3, 0]} scale={[0.3, 0.8, 0.1]}>
-        <boxGeometry args={[2, 1.5, 1]} />
+
+      {/* Right Sleeve */}
+      <mesh position={[1.3, 0.3, -0.05]} rotation={[0, 0, 0.3]}>
+        <planeGeometry args={[0.8, 1.2, 5, 5]} />
         <meshStandardMaterial
           color={color}
-          roughness={0.7}
-          metalness={0.1}
+          roughness={0.8}
+          metalness={0.05}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
       {/* Collar */}
-      <mesh position={[0, 1.1, 0.05]} scale={[0.8, 0.15, 0.05]}>
-        <torusGeometry args={[1, 0.3, 8, 16]} />
+      <mesh position={[0, 1.3, 0.02]}>
+        <ringGeometry args={[0.25, 0.4, 32]} />
         <meshStandardMaterial
           color={color}
-          roughness={0.7}
-          metalness={0.1}
+          roughness={0.8}
+          metalness={0.05}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Design overlay */}
+      {/* Design overlay on front */}
       {designImageUrl && (
         <mesh 
           ref={designRef} 
-          position={[0, 0.2, 0.051]} 
-          scale={[0.8, 1, 1]}
+          position={[0, 0, 0.05]} 
+          scale={[0.8, 0.8, 1]}
         >
-          <planeGeometry args={[1.2, 1.2]} />
+          <planeGeometry args={[1.5, 1.5]} />
           <meshStandardMaterial
             map={designTexture}
             transparent
             alphaTest={0.1}
-            roughness={0.8}
+            roughness={0.9}
             metalness={0}
           />
         </mesh>

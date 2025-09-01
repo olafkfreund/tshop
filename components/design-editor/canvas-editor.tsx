@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ProductCategory } from '@prisma/client'
 import { DesignCanvas } from '@/lib/design-editor/canvas'
-import { fabric } from 'fabric'
+import { FabricImage } from 'fabric'
 import { 
   Type, 
   Image as ImageIcon, 
@@ -49,7 +49,7 @@ export default function CanvasEditor({
 }: CanvasEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const designCanvasRef = useRef<DesignCanvas | null>(null)
-  const [activeObject, setActiveObject] = useState<fabric.Object | null>(null)
+  const [activeObject, setActiveObject] = useState<any | null>(null)
   const [zoom, setZoom] = useState(1)
   const [selectedTool, setSelectedTool] = useState<string>('')
 
@@ -83,8 +83,21 @@ export default function CanvasEditor({
       }
 
       // Load initial design if provided
-      if (initialDesign) {
-        // Load initial design logic here
+      if (initialDesign && designCanvasRef.current) {
+        // Use the DesignCanvas addImage method which handles scaling properly
+        designCanvasRef.current.addImage(initialDesign, {
+          // Override the default scaling to make the image larger
+          scaleX: 2,
+          scaleY: 2
+        }).then(() => {
+          // Trigger change event
+          if (onDesignChange && designCanvasRef.current) {
+            const dataURL = designCanvasRef.current.toDataURL()
+            onDesignChange(dataURL)
+          }
+        }).catch((error) => {
+          console.error('Error loading initial design:', error)
+        })
       }
     }
 
@@ -184,7 +197,7 @@ export default function CanvasEditor({
     if (!activeObject || !designCanvasRef.current) return
 
     if (property === 'text' && activeObject.type === 'text') {
-      designCanvasRef.current.updateText(activeObject as fabric.Text, { text: value })
+      designCanvasRef.current.updateText(activeObject as any, { text: value })
     } else {
       activeObject.set(property, value)
       designCanvasRef.current.getCanvas()?.renderAll()

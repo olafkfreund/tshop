@@ -18,7 +18,7 @@ export default function Header() {
   ]
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-background shadow-sm border-b">
       <div className="container mx-auto px-4
                       sm:px-6
                       lg:px-8">
@@ -26,10 +26,10 @@ export default function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">T</span>
+              <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">T</span>
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-900">TShop</span>
+              <span className="ml-2 text-xl font-bold text-foreground">TShop</span>
             </Link>
           </div>
 
@@ -39,7 +39,7 @@ export default function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-700 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors"
+                className="text-muted-foreground hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
               >
                 {item.name}
               </Link>
@@ -62,10 +62,10 @@ export default function Header() {
 
             {/* User Menu */}
             {status === 'loading' ? (
-              <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="h-8 w-8 bg-muted rounded-full animate-pulse"></div>
             ) : session ? (
               <div className="relative group">
-                <button className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 p-2">
+                <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary p-2">
                   {session.user.image ? (
                     <img 
                       src={session.user.image} 
@@ -79,30 +79,30 @@ export default function Header() {
                 </button>
                 
                 {/* Dropdown menu */}
-                <div className="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                <div className="absolute right-0 mt-1 w-48 bg-card rounded-md shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
                   <div className="py-1">
                     <Link
                       href="/dashboard"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/orders"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       Orders
                     </Link>
                     <Link
                       href="/designs/my-designs"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted"
                     >
                       My Designs
                     </Link>
-                    <div className="border-t border-gray-100">
+                    <div className="border-t">
                       <button
                         onClick={() => signOut()}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        className="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted"
                       >
                         <LogOut className="h-4 w-4 inline mr-2" />
                         Sign Out
@@ -114,7 +114,7 @@ export default function Header() {
             ) : (
               <Link
                 href="/auth/signin"
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 p-2"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-primary p-2"
               >
                 <LogIn className="h-5 w-5" />
                 <span className="text-sm font-medium">Sign In</span>
@@ -126,7 +126,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-primary-600 p-2"
+              className="text-muted-foreground hover:text-primary p-2"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -135,13 +135,13 @@ export default function Header() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t bg-white">
+          <div className="md:hidden border-t bg-background">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-gray-700 hover:text-primary-600 block px-3 py-2 text-base font-medium"
+                  className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -151,7 +151,7 @@ export default function Header() {
               <div className="border-t pt-4 mt-4">
                 {/* Theme Toggle for Mobile */}
                 <div className="flex items-center justify-between px-3 py-2">
-                  <span className="text-base font-medium">Theme</span>
+                  <span className="text-base font-medium text-foreground">Theme</span>
                   <ThemeToggle />
                 </div>
 
@@ -159,14 +159,14 @@ export default function Header() {
                   <>
                     <Link
                       href="/dashboard"
-                      className="nav-link block px-3 py-2 text-base font-medium"
+                      className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Dashboard
                     </Link>
                     <Link
                       href="/cart"
-                      className="nav-link block px-3 py-2 text-base font-medium"
+                      className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Cart
@@ -176,7 +176,7 @@ export default function Header() {
                         signOut()
                         setIsMenuOpen(false)
                       }}
-                      className="nav-link block px-3 py-2 text-base font-medium w-full text-left"
+                      className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium w-full text-left"
                     >
                       Sign Out
                     </button>
@@ -185,14 +185,14 @@ export default function Header() {
                   <>
                     <Link
                       href="/auth/signin"
-                      className="nav-link block px-3 py-2 text-base font-medium"
+                      className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/cart"
-                      className="nav-link block px-3 py-2 text-base font-medium"
+                      className="text-muted-foreground hover:text-primary block px-3 py-2 text-base font-medium"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Cart

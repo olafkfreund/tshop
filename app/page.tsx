@@ -8,17 +8,17 @@ export default function HomePage() {
       <Header />
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="relative bg-gradient-to-b from-primary-50 to-white py-20
+        <section className="relative bg-gradient-to-b from-primary/5 to-background py-20
                           md:py-32">
           <div className="container mx-auto px-4
                           sm:px-6
                           lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900
+              <h1 className="text-4xl font-bold tracking-tight text-foreground
                             sm:text-6xl">
                 AI-Powered Custom Apparel
               </h1>
-              <p className="mt-6 text-lg leading-8 text-gray-600
+              <p className="mt-6 text-lg leading-8 text-muted-foreground
                             sm:text-xl">
                 Create professional-quality personalized t-shirts, caps, and tote bags 
                 with instant AI design generation and integrated fulfillment.
@@ -44,16 +44,16 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-background">
           <div className="container mx-auto px-4
                           sm:px-6
                           lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900
+              <h2 className="text-3xl font-bold tracking-tight text-foreground
                             sm:text-4xl">
                 Everything you need to create amazing apparel
               </h2>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-muted-foreground">
                 Professional design tools powered by AI, with seamless fulfillment
               </p>
             </div>
@@ -62,44 +62,44 @@ export default function HomePage() {
                             sm:grid-cols-2
                             lg:grid-cols-3">
               <div className="card p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-500">
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+                  <svg className="h-6 w-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
                   AI Design Generation
                 </h3>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2 text-muted-foreground">
                   Create professional designs instantly with AI-powered generation tailored for apparel.
                 </p>
               </div>
 
               <div className="card p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-500">
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+                  <svg className="h-6 w-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                   </svg>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
                   3D Preview System
                 </h3>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2 text-muted-foreground">
                   See your designs in realistic 3D with interactive rotation and high-quality rendering.
                 </p>
               </div>
 
               <div className="card p-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-500">
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary">
+                  <svg className="h-6 w-6 text-primary-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0V8.25a1.5 1.5 0 113 0v10.5zM12.75 18.75a1.5 1.5 0 01-3 0V8.25a1.5 1.5 0 113 0v10.5zM17.25 18.75a1.5 1.5 0 01-3 0V8.25a1.5 1.5 0 113 0v10.5z" />
                   </svg>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+                <h3 className="mt-4 text-lg font-semibold text-foreground">
                   Integrated Fulfillment
                 </h3>
-                <p className="mt-2 text-gray-600">
+                <p className="mt-2 text-muted-foreground">
                   Seamless printing and shipping with premium and cost-effective options.
                 </p>
               </div>
@@ -108,16 +108,16 @@ export default function HomePage() {
         </section>
 
         {/* Product Types Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-muted/30">
           <div className="container mx-auto px-4
                           sm:px-6
                           lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900
+              <h2 className="text-3xl font-bold tracking-tight text-foreground
                             sm:text-4xl">
                 Premium Products
               </h2>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-muted-foreground">
                 High-quality apparel perfect for your custom designs
               </p>
             </div>
@@ -132,8 +132,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900">T-Shirts</h3>
-                  <p className="mt-2 text-gray-600">Premium cotton tees with perfect fit</p>
+                  <h3 className="text-lg font-semibold text-foreground">T-Shirts</h3>
+                  <p className="mt-2 text-muted-foreground">Premium cotton tees with perfect fit</p>
                   <div className="mt-4">
                     <Link href="/products/t-shirts" className="btn-primary">
                       Design Now
@@ -149,8 +149,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Caps</h3>
-                  <p className="mt-2 text-gray-600">Adjustable caps with AR try-on</p>
+                  <h3 className="text-lg font-semibold text-foreground">Caps</h3>
+                  <p className="mt-2 text-muted-foreground">Adjustable caps with AR try-on</p>
                   <div className="mt-4">
                     <Link href="/products/caps" className="btn-primary">
                       Design Now
@@ -166,8 +166,8 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Tote Bags</h3>
-                  <p className="mt-2 text-gray-600">Eco-friendly canvas totes</p>
+                  <h3 className="text-lg font-semibold text-foreground">Tote Bags</h3>
+                  <p className="mt-2 text-muted-foreground">Eco-friendly canvas totes</p>
                   <div className="mt-4">
                     <Link href="/products/tote-bags" className="btn-primary">
                       Design Now
@@ -181,30 +181,30 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white">
+      <footer className="bg-card border-t">
         <div className="container mx-auto px-4 py-12
                         sm:px-6
                         lg:px-8">
           <div className="text-center">
-            <h3 className="text-2xl font-bold">TShop</h3>
-            <p className="mt-2 text-gray-400">
+            <h3 className="text-2xl font-bold text-foreground">TShop</h3>
+            <p className="mt-2 text-muted-foreground">
               AI-Powered Custom Apparel Platform
             </p>
             <div className="mt-8 flex justify-center space-x-6">
-              <Link href="/about" className="text-gray-400 hover:text-white">
+              <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
                 About
               </Link>
-              <Link href="/contact" className="text-gray-400 hover:text-white">
+              <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                 Contact
               </Link>
-              <Link href="/privacy" className="text-gray-400 hover:text-white">
+              <Link href="/privacy" className="text-muted-foreground hover:text-foreground transition-colors">
                 Privacy
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-white">
+              <Link href="/terms" className="text-muted-foreground hover:text-foreground transition-colors">
                 Terms
               </Link>
             </div>
-            <div className="mt-8 text-sm text-gray-400">
+            <div className="mt-8 text-sm text-muted-foreground">
               © 2025 TShop. All rights reserved.
             </div>
           </div>

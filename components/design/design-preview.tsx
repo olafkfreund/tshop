@@ -17,17 +17,17 @@ const PRODUCT_MOCKUPS = {
   TSHIRT: {
     name: 'T-Shirt',
     mockupUrl: '/images/mockups/tshirt-mockup.png',
-    designPosition: { x: '50%', y: '35%', width: '25%', height: 'auto' },
+    designPosition: { x: '50%', y: '35%', width: '45%', height: 'auto' },
   },
   CAP: {
     name: 'Cap', 
     mockupUrl: '/images/mockups/cap-mockup.png',
-    designPosition: { x: '50%', y: '25%', width: '20%', height: 'auto' },
+    designPosition: { x: '50%', y: '25%', width: '35%', height: 'auto' },
   },
   TOTE_BAG: {
     name: 'Tote Bag',
     mockupUrl: '/images/mockups/tote-mockup.png', 
-    designPosition: { x: '50%', y: '40%', width: '22%', height: 'auto' },
+    designPosition: { x: '50%', y: '40%', width: '40%', height: 'auto' },
   },
 }
 
@@ -156,13 +156,13 @@ export default function DesignPreview({
         <div className="relative w-full h-full max-w-sm max-h-sm">
           <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg shadow-lg"></div>
           
-          {/* Design overlay */}
+          {/* Design overlay - Made larger for better visibility */}
           <div 
             className="absolute"
             style={{
               left: mockup.designPosition.x,
               top: mockup.designPosition.y,
-              width: mockup.designPosition.width,
+              width: productCategory === 'TSHIRT' ? '45%' : productCategory === 'CAP' ? '35%' : '40%',
               transform: 'translate(-50%, -50%)',
             }}
           >
