@@ -1,322 +1,263 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { ProductCategory } from '@/types'
+import { Suspense } from 'react'
 import Header from '@/components/navigation/header'
-import { PRODUCT_CATEGORIES } from '@/lib/constants'
-import { Heart, Eye, Share2, Filter, Grid, List, Wand2 } from 'lucide-react'
+import GalleryGrid from '@/components/gallery/gallery-grid'
+import GalleryFilters from '@/components/gallery/gallery-filters'
+import { 
+  Palette, 
+  Users, 
+  TrendingUp, 
+  Sparkles,
+  Star,
+  Award,
+  Eye
+} from 'lucide-react'
 
-interface GalleryDesign {
-  id: string
-  designName: string
-  description?: string
-  imageUrl: string
-  prompt: string
-  productCategory: ProductCategory
+interface SearchParams {
+  category?: string
   style?: string
-  tags?: string[]
-  isPublic: boolean
-  createdAt: string
-  likes: number
-  views: number
-  authorName?: string
+  sort?: string
+  search?: string
 }
 
-export default function GalleryPage() {
-  const [designs, setDesigns] = useState<GalleryDesign[]>([])
-  const [loading, setLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'ALL'>('ALL')
-  const [selectedStyle, setSelectedStyle] = useState<string>('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [likedDesigns, setLikedDesigns] = useState<Set<string>>(new Set())
-
-  useEffect(() => {
-    loadGalleryDesigns()
-  }, [selectedCategory, selectedStyle])
-
-  const loadGalleryDesigns = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (selectedCategory !== 'ALL') {
-        params.set('category', selectedCategory)
-      }
-      if (selectedStyle) {
-        params.set('style', selectedStyle)
-      }
-      params.set('limit', '20')
-
-      const response = await fetch(`/api/gallery?${params.toString()}`)
-      const data = await response.json()
-
-      if (data.success) {
-        setDesigns(data.data.designs)
-      } else {
-        console.error('Failed to load gallery:', data.error)
-      }
-    } catch (error) {
-      console.error('Error loading gallery:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleLike = async (designId: string) => {
-    try {
-      const isLiked = likedDesigns.has(designId)
-      const action = isLiked ? 'unlike' : 'like'
-
-      const response = await fetch('/api/gallery', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ designId, action })
-      })
-
-      if (response.ok) {
-        setLikedDesigns(prev => {
-          const newSet = new Set(prev)
-          if (isLiked) {
-            newSet.delete(designId)
-          } else {
-            newSet.add(designId)
-          }
-          return newSet
-        })
-
-        setDesigns(prev => prev.map(design => 
-          design.id === designId 
-            ? { ...design, likes: design.likes + (isLiked ? -1 : 1) }
-            : design
-        ))
-      }
-    } catch (error) {
-      console.error('Error updating like:', error)
-    }
-  }
-
-  const handleUsePrompt = (prompt: string, productCategory: ProductCategory) => {
-    const params = new URLSearchParams({
-      prompt,
-      category: productCategory
-    })
-    window.location.href = `/design?${params.toString()}`
-  }
-
-  const handleShare = (design: GalleryDesign) => {
-    if (navigator.share) {
-      navigator.share({
-        title: `Check out "${design.designName}" on TShop`,
-        text: design.description || `AI-generated ${design.productCategory.toLowerCase()} design`,
-        url: window.location.href
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
-      alert('Link copied to clipboard!')
-    }
-  }
-
-  const styles = ['minimalist', 'vintage', 'modern', 'artistic', 'cartoon', 'realistic']
+export default function GalleryPage({ searchParams }: { searchParams: SearchParams }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold mb-4 sm:text-5xl">Design Gallery</h1>
+        <div className="container mx-auto px-4
+                        sm:px-6
+                        lg:px-8">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl font-bold mb-4
+                          sm:text-5xl">
+              Design Gallery
+            </h1>
             <p className="text-xl opacity-90 mb-8">
-              Discover amazing AI-generated designs from our community. Get inspired and create your own masterpiece!
+              Discover amazing AI-generated designs from our community. Get inspired, 
+              share your creations, and find the perfect design for your custom apparel.
+            </p>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-1 gap-6 mt-12
+                            sm:grid-cols-3">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-lg mb-4">
+                  <Palette className="h-6 w-6" />
+                </div>
+                <h3 className="font-semibold mb-2">1,200+ Designs</h3>
+                <p className="text-sm opacity-80">AI-generated custom designs ready to use</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-lg mb-4">
+                  <Users className="h-6 w-6" />
+                </div>
+                <h3 className="font-semibold mb-2">850+ Creators</h3>
+                <p className="text-sm opacity-80">Talented designers sharing their work</p>
+              </div>
+              
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-lg mb-4">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <h3 className="font-semibold mb-2">25K+ Likes</h3>
+                <p className="text-sm opacity-80">Community appreciation and engagement</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12
+                      sm:px-6
+                      lg:px-8">
+        
+        {/* Section Navigation */}
+        <div className="mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4
+                          sm:justify-start">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg">
+              <TrendingUp className="h-4 w-4" />
+              <span>Trending</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <Sparkles className="h-4 w-4" />
+              <span>Recent</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <Star className="h-4 w-4" />
+              <span>Most Liked</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+              <Award className="h-4 w-4" />
+              <span>Featured</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Filters and Grid */}
+        <div className="grid grid-cols-1 gap-8
+                        lg:grid-cols-4">
+          
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <Suspense fallback={<div className="animate-pulse bg-gray-200 h-96 rounded-lg"></div>}>
+              <GalleryFilters searchParams={searchParams} />
+            </Suspense>
+          </div>
+
+          {/* Gallery Grid */}
+          <div className="lg:col-span-3">
+            <Suspense fallback={<GalleryLoadingSkeleton />}>
+              <GalleryGrid searchParams={searchParams} />
+            </Suspense>
+          </div>
+        </div>
+
+        {/* Community Features */}
+        <div className="mt-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Join the Community</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Share your designs, discover trending styles, and connect with fellow creators. 
+              Every design tells a story – what's yours?
             </p>
           </div>
-        </div>
-      </div>
 
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap items-center gap-4 justify-between">
-            <div className="flex items-center gap-4">
-              <Filter className="h-5 w-5 text-gray-600" />
-              
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value as ProductCategory | 'ALL')}
-                className="input text-sm"
-              >
-                <option value="ALL">All Products</option>
-                {Object.entries(PRODUCT_CATEGORIES).map(([key, value]) => (
-                  <option key={key} value={key}>{value}</option>
-                ))}
-              </select>
-
-              <select
-                value={selectedStyle}
-                onChange={(e) => setSelectedStyle(e.target.value)}
-                className="input text-sm"
-              >
-                <option value="">All Styles</option>
-                {styles.map(style => (
-                  <option key={style} value={style}>
-                    {style.charAt(0).toUpperCase() + style.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'grid' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Grid className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'list' ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(12)].map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className="aspect-square bg-gray-200 rounded-lg mb-4"></div>
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+          <div className="grid grid-cols-1 gap-6
+                          md:grid-cols-3">
+            <div className="text-center p-6 bg-white rounded-xl border border-gray-100">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
+                <Sparkles className="h-6 w-6 text-blue-600" />
               </div>
-            ))}
-          </div>
-        ) : designs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mx-auto h-24 w-24 text-gray-300 mb-4">
-              <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-              </svg>
+              <h3 className="font-semibold mb-2 text-gray-900">Share Your Designs</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Submit your AI-generated designs to inspire others and showcase your creativity
+              </p>
+              <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                Upload Design →
+              </button>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No designs found</h3>
-            <p className="text-gray-600 mb-4">Try adjusting your filters or be the first to share a design!</p>
-            <a href="/design" className="btn-primary inline-flex items-center">
-              <Wand2 className="h-4 w-4 mr-2" />
-              Create Design
-            </a>
+
+            <div className="text-center p-6 bg-white rounded-xl border border-gray-100">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mb-4">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold mb-2 text-gray-900">Follow Creators</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Connect with talented designers and stay updated with their latest creations
+              </p>
+              <button className="text-purple-600 hover:text-purple-700 font-medium text-sm">
+                Discover Creators →
+              </button>
+            </div>
+
+            <div className="text-center p-6 bg-white rounded-xl border border-gray-100">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4">
+                <Award className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold mb-2 text-gray-900">Earn Recognition</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Get likes, followers, and featured placement for your most popular designs
+              </p>
+              <button className="text-green-600 hover:text-green-700 font-medium text-sm">
+                Learn More →
+              </button>
+            </div>
           </div>
-        ) : (
-          <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-6"}>
-            {designs.map((design) => (
-              <DesignCard
-                key={design.id}
-                design={design}
-                viewMode={viewMode}
-                isLiked={likedDesigns.has(design.id)}
-                onLike={() => handleLike(design.id)}
-                onUsePrompt={() => handleUsePrompt(design.prompt, design.productCategory)}
-                onShare={() => handleShare(design)}
-              />
-            ))}
+        </div>
+
+        {/* Design Challenges */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Design Challenges</h2>
+            <p className="text-gray-600">
+              Weekly themed challenges to inspire creativity and win amazing prizes
+            </p>
           </div>
-        )}
+
+          <div className="grid grid-cols-1 gap-6
+                          md:grid-cols-2">
+            <div className="bg-gradient-to-r from-orange-400 to-pink-500 rounded-xl p-6 text-white">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold mb-2">🎃 Halloween Vibes</h3>
+                  <p className="text-white/90 text-sm mb-4">
+                    Create spooky, fun, or themed designs perfect for Halloween season
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <span>🏆 Winner gets $100</span>
+                    <span>⏰ 5 days left</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold">127</div>
+                  <div className="text-white/80 text-xs">submissions</div>
+                </div>
+              </div>
+              <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                Join Challenge
+              </button>
+            </div>
+
+            <div className="bg-gradient-to-r from-blue-400 to-purple-500 rounded-xl p-6 text-white">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-bold mb-2">🌟 Minimalist Magic</h3>
+                  <p className="text-white/90 text-sm mb-4">
+                    Less is more – create stunning designs with minimal elements
+                  </p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <span>🎁 Feature placement</span>
+                    <span>⏰ 12 days left</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold">89</div>
+                  <div className="text-white/80 text-xs">submissions</div>
+                </div>
+              </div>
+              <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                Join Challenge
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-interface DesignCardProps {
-  design: GalleryDesign
-  viewMode: 'grid' | 'list'
-  isLiked: boolean
-  onLike: () => void
-  onUsePrompt: () => void
-  onShare: () => void
-}
-
-function DesignCard({ design, viewMode, isLiked, onLike, onUsePrompt, onShare }: DesignCardProps) {
-  const getStyleBadgeClass = (style: string): string => {
-    const styles = {
-      minimalist: 'bg-gray-100 text-gray-700',
-      vintage: 'bg-amber-100 text-amber-700',
-      modern: 'bg-blue-100 text-blue-700',
-      artistic: 'bg-purple-100 text-purple-700',
-      cartoon: 'bg-pink-100 text-pink-700',
-      realistic: 'bg-green-100 text-green-700',
-    }
-    return styles[style as keyof typeof styles] || styles.modern
-  }
-
+function GalleryLoadingSkeleton() {
   return (
-    <div className="bg-white rounded-lg border shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-      <div className="aspect-square relative group">
-        <img
-          src={design.imageUrl}
-          alt={design.designName}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity">
-          <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={onShare}
-              className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-50"
-            >
-              <Share2 className="h-4 w-4 text-gray-600" />
-            </button>
-            <button
-              onClick={onLike}
-              className={`p-1.5 rounded-full shadow-md ${
-                isLiked ? 'bg-red-500 text-white' : 'bg-white hover:bg-gray-50 text-gray-600'
-              }`}
-            >
-              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-            </button>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Sort bar skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="h-4 bg-gray-200 rounded w-32 animate-pulse"></div>
+        <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
       </div>
-      
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-900 truncate">{design.designName}</h3>
-            <p className="text-sm text-gray-600">by {design.authorName}</p>
-          </div>
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${getStyleBadgeClass(design.style || 'modern')}`}>
-            {design.style}
-          </span>
-        </div>
-        
-        {design.description && (
-          <p className="text-sm text-gray-700 mb-3 line-clamp-2">{design.description}</p>
-        )}
-        
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <Eye className="h-4 w-4" />
-              {design.views}
-            </div>
-            <div className="flex items-center gap-1">
-              <Heart className={`h-4 w-4 ${isLiked ? 'text-red-500 fill-current' : ''}`} />
-              {design.likes}
+
+      {/* Grid skeleton */}
+      <div className="grid grid-cols-1 gap-6
+                      sm:grid-cols-2
+                      lg:grid-cols-3">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="bg-gray-200 rounded-lg aspect-square mb-4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              <div className="flex items-center space-x-4">
+                <div className="h-3 bg-gray-200 rounded w-12"></div>
+                <div className="h-3 bg-gray-200 rounded w-12"></div>
+              </div>
             </div>
           </div>
-          <span className="text-xs">{PRODUCT_CATEGORIES[design.productCategory]}</span>
-        </div>
-        
-        <button
-          onClick={onUsePrompt}
-          className="btn-primary w-full text-sm flex items-center justify-center gap-2"
-        >
-          <Wand2 className="h-4 w-4" />
-          Use This Design
-        </button>
+        ))}
       </div>
     </div>
   )

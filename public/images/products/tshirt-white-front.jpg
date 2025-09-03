@@ -1,0 +1,32 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#f8fafc"/>
+  
+  <!-- T-shirt shape -->
+  <path d="M140 120 L140 100 Q140 80 160 80 L180 80 Q190 70 210 70 L240 70 Q250 80 260 80 L280 80 Q300 80 300 100 L300 120 L320 130 L320 180 Q320 190 310 190 L300 190 L300 350 Q300 370 280 370 L160 370 Q140 370 140 350 L140 190 L130 190 Q120 190 120 180 L120 130 Z" 
+        fill="#ffffff" 
+        stroke="#e2e8f0" 
+        stroke-width="2"/>
+  
+  <!-- Sleeves -->
+  <path d="M120 130 Q100 140 100 160 L100 180 Q100 190 110 190 L120 190" 
+        fill="#ffffff" 
+        stroke="#e2e8f0" 
+        stroke-width="2"/>
+  <path d="M320 130 Q340 140 340 160 L340 180 Q340 190 330 190 L320 190" 
+        fill="#ffffff" 
+        stroke="#e2e8f0" 
+        stroke-width="2"/>
+  
+  <!-- Neckline -->
+  <path d="M180 80 Q190 90 200 90 Q210 90 220 80" 
+        fill="none" 
+        stroke="#e2e8f0" 
+        stroke-width="2"/>
+  
+  <!-- Shadow -->
+  <ellipse cx="200" cy="380" rx="80" ry="15" fill="rgba(0,0,0,0.1)"/>
+  
+  <!-- Label -->
+  <rect x="150" y="320" width="100" height="30" fill="rgba(255,255,255,0.9)" rx="4"/>
+  <text x="200" y="340" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="12">White T-Shirt</text>
+</svg>

@@ -25,16 +25,14 @@ export default function HomePage() {
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <Link 
-                  href="/design" 
-                  className="btn-primary text-base px-6 py-3
-                            hover:bg-primary-600
-                            focus-visible:ring-primary-600"
+                  href="/ai-design" 
+                  className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
                 >
                   Start Designing
                 </Link>
                 <Link 
                   href="/products" 
-                  className="btn-ghost text-base px-6 py-3"
+                  className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
                   View Products
                 </Link>
@@ -135,7 +133,7 @@ export default function HomePage() {
                   <h3 className="text-lg font-semibold text-foreground">T-Shirts</h3>
                   <p className="mt-2 text-muted-foreground">Premium cotton tees with perfect fit</p>
                   <div className="mt-4">
-                    <Link href="/products/t-shirts" className="btn-primary">
+                    <Link href="/ai-design" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-block">
                       Design Now
                     </Link>
                   </div>
@@ -152,7 +150,7 @@ export default function HomePage() {
                   <h3 className="text-lg font-semibold text-foreground">Caps</h3>
                   <p className="mt-2 text-muted-foreground">Adjustable caps with AR try-on</p>
                   <div className="mt-4">
-                    <Link href="/products/caps" className="btn-primary">
+                    <Link href="/ai-design" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-block">
                       Design Now
                     </Link>
                   </div>
@@ -169,7 +167,7 @@ export default function HomePage() {
                   <h3 className="text-lg font-semibold text-foreground">Tote Bags</h3>
                   <p className="mt-2 text-muted-foreground">Eco-friendly canvas totes</p>
                   <div className="mt-4">
-                    <Link href="/products/tote-bags" className="btn-primary">
+                    <Link href="/ai-design" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors inline-block">
                       Design Now
                     </Link>
                   </div>

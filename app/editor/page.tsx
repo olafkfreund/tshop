@@ -14,7 +14,7 @@ const CanvasEditor = dynamic(
     loading: () => (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading Design Editor...</p>
         </div>
       </div>
@@ -22,17 +22,9 @@ const CanvasEditor = dynamic(
   }
 )
 
-const ProductPreview3D = dynamic(
-  () => import('@/components/3d-preview/product-preview-3d'),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-gray-600">Loading 3D Preview...</div>
-      </div>
-    )
-  }
-)
+import EnhancedPreview from '@/components/3d-preview/enhanced-preview'
+import PlacementPreview from '@/components/design-placement/placement-preview'
+import ProductConfigModal from '@/components/cart/product-config-modal'
 import { PRODUCT_CATEGORIES, COLORS } from '@/lib/constants'
 import { 
   Save, 
@@ -54,43 +46,54 @@ export default function EditorPage() {
   const [selectedColor, setSelectedColor] = useState('#FFFFFF')
   const [designDataUrl, setDesignDataUrl] = useState<string>('')
   const [showPreview, setShowPreview] = useState(false)
+  const [showPlacementPreview, setShowPlacementPreview] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [showCartModal, setShowCartModal] = useState(false)
 
   // Load initial data from URL params and session storage
   useEffect(() => {
     const category = searchParams?.get('category') as ProductCategory
+    const productType = searchParams?.get('productType') as ProductCategory
     const color = searchParams?.get('color')
     const templateId = searchParams?.get('template')
     const designParam = searchParams?.get('design')
+    const aiImage = searchParams?.get('aiImage')
     
-    if (category && Object.keys(PRODUCT_CATEGORIES).includes(category)) {
-      setProductCategory(category)
+    // Set product category from either parameter
+    const categoryToUse = productType || category
+    if (categoryToUse && Object.keys(PRODUCT_CATEGORIES).includes(categoryToUse)) {
+      setProductCategory(categoryToUse)
     }
     
     if (color) {
       setSelectedColor(color)
     }
     
-    // Check for AI design data from session storage
-    const storedDesign = sessionStorage.getItem('editingDesign')
-    if (storedDesign) {
-      try {
-        const designData = JSON.parse(storedDesign)
-        console.log('Loading AI design for editing:', designData)
-        
-        // Set initial design image
-        if (designData.imageUrl) {
-          setDesignDataUrl(designData.imageUrl)
+    // Load AI-generated image directly from URL parameter
+    if (aiImage) {
+      setDesignDataUrl(decodeURIComponent(aiImage))
+    } else {
+      // Check for AI design data from session storage
+      const storedDesign = sessionStorage.getItem('editingDesign')
+      if (storedDesign) {
+        try {
+          const designData = JSON.parse(storedDesign)
+          console.log('Loading AI design for editing:', designData)
+          
+          // Set initial design image
+          if (designData.imageUrl) {
+            setDesignDataUrl(designData.imageUrl)
+          }
+          
+          // Clear session storage after loading
+          sessionStorage.removeItem('editingDesign')
+        } catch (error) {
+          console.error('Error loading design from session storage:', error)
         }
-        
-        // Clear session storage after loading
-        sessionStorage.removeItem('editingDesign')
-      } catch (error) {
-        console.error('Error loading design from session storage:', error)
+      } else if (designParam) {
+        // Load design from URL parameter
+        setDesignDataUrl(designParam)
       }
-    } else if (designParam) {
-      // Load design from URL parameter
-      setDesignDataUrl(designParam)
     }
     
     if (templateId) {
@@ -194,8 +197,7 @@ export default function EditorPage() {
       return
     }
     
-    // Add to cart logic
-    alert('Add to cart functionality coming soon!')
+    setShowCartModal(true)
   }
 
   const handleShareDesign = () => {
@@ -247,6 +249,14 @@ export default function EditorPage() {
               >
                 <Eye className="h-4 w-4 mr-2" />
                 {showPreview ? 'Hide Preview' : 'Show Preview'}
+              </button>
+              
+              <button
+                onClick={() => setShowPlacementPreview(!showPlacementPreview)}
+                className={`btn-ghost text-sm px-3 py-2 ${showPlacementPreview ? 'bg-blue-50 text-blue-700' : ''}`}
+              >
+                <Layers className="h-4 w-4 mr-2" />
+                Placement
               </button>
               
               <button
@@ -351,46 +361,111 @@ export default function EditorPage() {
         {/* Center - Canvas Editor */}
         <div className="flex-1">
           <CanvasEditor
-            productCategory={productCategory}
-            initialDesign={designDataUrl}
-            onDesignChange={handleDesignChange}
+            productType={productCategory}
+            aiImageUrl={designDataUrl}
+            onSave={(designData, imageData) => {
+              setDesignDataUrl(imageData)
+              handleDesignChange(imageData)
+            }}
           />
         </div>
 
-        {/* Right Panel - 3D Preview */}
-        {showPreview && (
+        {/* Right Panel - Product Preview or Placement Preview */}
+        {(showPreview || showPlacementPreview) && (
           <div className="w-80 bg-white border-l">
-            <div className="p-4 border-b">
-              <h3 className="font-semibold text-gray-900">3D Preview</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                See how your design looks on the product
-              </p>
-            </div>
-            <div className="p-4">
-              <ProductPreview3D
-                productCategory={productCategory}
-                designImageUrl={designDataUrl}
-                selectedColor={selectedColor}
-                className="h-80"
-              />
-            </div>
-            
-            {/* Preview Controls */}
-            <div className="p-4 border-t">
-              <div className="space-y-2">
-                <button className="w-full btn-secondary text-sm py-2">
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  Customize Product
-                </button>
-                <button className="w-full btn-primary text-sm py-2">
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </button>
-              </div>
-            </div>
+            {showPreview && !showPlacementPreview && (
+              <>
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-gray-900">Product Preview</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    See how your design looks on the product
+                  </p>
+                </div>
+                <div className="p-4">
+                  <EnhancedPreview
+                    productCategory={productCategory}
+                    designImageUrl={designDataUrl}
+                    color={selectedColor === '#FFFFFF' ? 'white' : selectedColor === '#000000' ? 'black' : 'white'}
+                    defaultView="3d"
+                    className="h-80"
+                  />
+                </div>
+                
+                {/* Preview Controls */}
+                <div className="p-4 border-t">
+                  <div className="space-y-2">
+                    <button className="w-full btn-secondary text-sm py-2">
+                      <Edit3 className="h-4 w-4 mr-2" />
+                      Customize Product
+                    </button>
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={!designDataUrl}
+                      className="w-full btn-primary text-sm py-2 disabled:opacity-50"
+                    >
+                      <ShoppingCart className="h-4 w-4 mr-2" />
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {showPlacementPreview && (
+              <>
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold text-gray-900">Design Placement</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Preview how designs are positioned for printing
+                  </p>
+                </div>
+                <div className="p-4">
+                  <PlacementPreview
+                    productCategory={productCategory}
+                    customDesignUrl={designDataUrl}
+                    color={selectedColor === '#FFFFFF' ? 'white' : selectedColor === '#000000' ? 'black' : 'white'}
+                    className="h-96"
+                  />
+                </div>
+                
+                {/* Placement Info */}
+                <div className="p-4 border-t">
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div className="font-medium">Print Requirements:</div>
+                    <div>• Front: Custom design area</div>
+                    <div>• Back: TShop logo placement</div>
+                    <div>• High resolution (300 DPI minimum)</div>
+                    <div>• Vector graphics preferred</div>
+                  </div>
+                  
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={!designDataUrl}
+                    className="w-full btn-primary text-sm py-2 mt-4 disabled:opacity-50"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
+
+      {/* Product Configuration Modal */}
+      {showCartModal && designDataUrl && (
+        <ProductConfigModal
+          isOpen={showCartModal}
+          onClose={() => setShowCartModal(false)}
+          design={{
+            id: `editor-${Date.now()}`,
+            imageUrl: designDataUrl,
+            prompt: 'Custom design created in editor'
+          }}
+          productCategory={productCategory}
+        />
+      )}
     </div>
   )
 }

@@ -1,404 +1,572 @@
 # TShop - AI-Powered Custom Apparel Platform
 
-> **Modern Development Environment with NixOS**  
-> Complete Next.js 15+ application with AI integration, 3D rendering, and e-commerce functionality
+## Overview
 
-[![Built with Nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://nixos.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?logo=postgresql&logoColor=white)](https://postgresql.org/)
+TShop is a comprehensive e-commerce platform for custom apparel design and fulfillment. It combines AI-powered design generation with integrated print-on-demand services to enable users to create and purchase custom t-shirts, caps, and tote bags.
 
-## About TShop
+## Key Features
 
-TShop is an AI-powered custom apparel platform that allows users to create unique designs using artificial intelligence, visualize them in 3D, and order custom products. Built with modern web technologies and a focus on performance, security, and user experience.
+### Core Platform Features
+- **AI Design Generation**: Instant professional design creation using Google Gemini AI
+- **Interactive Design Editor**: Real-time design customization with Fabric.js
+- **Product Catalog**: Support for t-shirts, caps, and tote bags with multiple variants
+- **Dual Fulfillment Integration**: Seamless connection to Printful (premium) and Printify (cost-effective)
+- **Shopping Cart System**: Persistent cart with user and guest support
+- **Payment Processing**: Secure checkout with Stripe integration
+- **Order Management**: Real-time tracking and status updates
 
-### Key Features
+### Advanced Features
+- **3D Product Preview**: Interactive 3D visualization for product previews
+- **Multi-language Support**: Internationalization ready (EN, ES, FR, DE)
+- **Responsive Design**: Mobile-first approach with progressive enhancement
+- **Dark Mode Support**: Full theme customization with TailwindCSS
+- **AI Usage Limits**: Tiered rate limiting system for cost control
+- **User Authentication**: Complete auth system with NextAuth.js
+- **Admin Interface**: Comprehensive administration panel for platform management
 
-- **AI Design Generation**: Create unique designs with Google Gemini AI
-- **Interactive Design Editor**: Powered by Fabric.js with real-time editing
-- **3D/AR Visualization**: Three.js and WebXR for immersive product preview
-- **E-commerce Integration**: Complete shopping cart and checkout with Stripe
-- **Multi-Provider Fulfillment**: Printful (premium) and Printify (cost-effective)
-- **Gamification**: Points, achievements, and social features
-- **Internationalization**: Support for multiple languages and currencies
-- **Progressive Web App**: Optimized for mobile and desktop
+## Technology Stack
 
-## Architecture
+### Core Technologies
+- **Framework**: Next.js 15.0+ with TypeScript
+- **Database**: PostgreSQL 17+ with direct SQL queries (no ORM)
+- **Authentication**: NextAuth.js v5
+- **Payment**: Stripe API
+- **AI Integration**: Google Gemini API
+- **Styling**: TailwindCSS 4.0+
+- **Design Editor**: Fabric.js
+- **3D Visualization**: Three.js with React Three Fiber
 
-### Tech Stack
+### Infrastructure
+- **Hosting**: Vercel
+- **Database Hosting**: Local PostgreSQL (production: Vercel Postgres or Railway)
+- **Asset Storage**: Vercel Blob or Cloudinary
+- **CDN**: Built-in Vercel CDN
 
-- **Framework**: Next.js 15+ with React 19 and TypeScript
-- **Database**: PostgreSQL 17+ with Prisma ORM
-- **Cache**: Redis for session and application caching
-- **AI**: Google Gemini API for design generation
-- **3D Graphics**: Three.js with React Three Fiber
-- **Design Editor**: Fabric.js for interactive canvas
-- **Payments**: Stripe with webhook support
-- **Authentication**: NextAuth.js with JWT
-- **Styling**: TailwindCSS 4.0+ with Radix UI components
-
-### Development Environment
-
-This project uses **NixOS Flakes** for a completely reproducible development environment that includes:
-
-- Node.js 22 LTS with npm
-- PostgreSQL 17+ with sample data
-- Redis server for caching
-- SSL certificates for HTTPS development
-- Pre-commit hooks for code quality
-- Complete toolchain for testing and deployment
-
-## Quick Start
+## Installation
 
 ### Prerequisites
+- Node.js 22 LTS or higher
+- PostgreSQL 17 or higher
+- npm or yarn package manager
+- Git
 
-- [Nix](https://nixos.org/download.html) with flakes enabled
-- [direnv](https://direnv.net/) (optional but recommended)
+### Environment Setup
 
-### 1. Clone and Enter Development Environment
-
+1. Clone the repository:
 ```bash
-# Clone the repository
-git clone <repository-url> tshop
+git clone https://github.com/yourusername/tshop.git
 cd tshop
-
-# Enter the Nix development shell
-nix develop
-
-# Or if you have direnv installed, it will activate automatically
-# direnv allow
 ```
 
-### 2. Initialize the Project
-
+2. Install dependencies:
 ```bash
-# Run the automated setup script
-./scripts/dev-setup.sh
-
-# Or use individual commands:
-just init          # Initialize project structure
-just env-setup      # Set up environment variables
-just ssl-setup      # Generate SSL certificates
-just db-init        # Set up database
-```
-
-### 3. Configure Environment Variables
-
-```bash
-# Copy example environment file
-cp .env.example .env.local
-
-# Edit .env.local with your API keys:
-# - GEMINI_API_KEY: Get from Google AI Studio
-# - STRIPE_PUBLISHABLE_KEY & STRIPE_SECRET_KEY: From Stripe Dashboard
-# - Other service API keys as needed
-```
-
-### 4. Install Dependencies and Start Development
-
-```bash
-# Install Node.js dependencies
 npm install
-
-# Start all development services
-just dev
-
-# Or use individual services:
-just dev-web        # Start only Next.js server
-just dev-db         # Start only database services
 ```
 
-### 5. Access the Application
+3. Set up PostgreSQL database:
 
-- **Main App**: https://localhost:3000
-- **Database Studio**: http://localhost:5555 (run `just db-studio`)
-- **API Documentation**: https://localhost:3000/api-docs
+Create a PostgreSQL database and user:
+```sql
+CREATE DATABASE tshop_dev;
+CREATE USER tshop_user WITH PASSWORD 'tshop_password';
+GRANT ALL PRIVILEGES ON DATABASE tshop_dev TO tshop_user;
+```
 
-## Development Commands
-
-We use [just](https://github.com/casey/just) as our command runner. Here are the most common commands:
-
-### Environment Management
+4. Initialize the database schema:
 ```bash
-just init           # Initialize development environment
-just health         # Check environment health
-just clean          # Clean development environment
+psql -U tshop_user -d tshop_dev -p 5433 -h localhost -f init-db.sql
 ```
 
-### Development Servers
+5. Configure environment variables:
+
+Create a `.env.local` file in the root directory:
+```env
+# Database Configuration
+DATABASE_URL=postgresql://tshop_user:tshop_password@localhost:5433/tshop_dev
+
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3001
+NEXTAUTH_SECRET=your-secret-key-here
+
+# OAuth Providers (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Stripe Configuration
+STRIPE_SECRET_KEY=your-stripe-secret-key
+STRIPE_WEBHOOK_SECRET=your-stripe-webhook-secret
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your-stripe-publishable-key
+
+# Google Gemini AI
+GOOGLE_GEMINI_API_KEY=your-gemini-api-key
+
+# Fulfillment APIs (optional)
+PRINTFUL_API_KEY=your-printful-api-key
+PRINTIFY_API_KEY=your-printify-api-key
+```
+
+6. Set up the admin user:
 ```bash
-just dev            # Start all services with Overmind
-just dev-web        # Start only Next.js development server
-just dev-db         # Start only database services
-just stop           # Stop all services
+npx tsx scripts/setup-admin.ts
 ```
 
-### Database Operations
+7. Start the development server:
 ```bash
-just db-init        # Initialize database with schema
-just db-migrate     # Run Prisma migrations
-just db-studio      # Open Prisma Studio
-just db-seed        # Seed with sample data
-just db-reset       # Reset database (destructive!)
+npm run dev -- --port 3001
 ```
 
-### Code Quality
-```bash
-just lint           # Run ESLint
-just lint-fix       # Fix ESLint issues
-just type-check     # Run TypeScript type checking
-just format         # Format code with Prettier
-just quality        # Run all quality checks
+The application will be available at `http://localhost:3001`
+
+## Database Configuration
+
+### Direct PostgreSQL Connection
+
+The application uses direct PostgreSQL connections via the `pg` library instead of an ORM. The database configuration is located in `lib/db-direct.ts`:
+
+```javascript
+const pool = new Pool({
+  host: 'localhost',
+  port: 5433,
+  database: 'tshop_dev',
+  user: 'tshop_user',
+  password: 'tshop_password',
+  ssl: false, // Set to true for production
+  max: 10,
+  min: 2,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000
+})
 ```
-
-### Testing
-```bash
-just test           # Run unit tests
-just test-coverage  # Run tests with coverage
-just test-e2e       # Run Playwright E2E tests
-just test-e2e-ui    # Run E2E tests in UI mode
-```
-
-### Building and Deployment
-```bash
-just build          # Build for production
-just build-analyze  # Build with bundle analysis
-just deploy         # Deploy to Vercel production
-just deploy-staging # Deploy to Vercel staging
-```
-
-## Project Structure
-
-```
-tshop/
-├── README.md                          # This file
-├── flake.nix                         # Nix development environment
-├── .envrc                           # direnv configuration
-├── .env.example                     # Environment variables template
-├── Procfile.dev                     # Development services definition
-├── justfile                         # Command definitions
-├──.pre-commit-config.yaml           # Git hooks configuration
-│
-├── scripts/                         # Development and deployment scripts
-│   ├── dev-setup.sh                # Automated environment setup
-│   └── db-init.sql                 # Database initialization script
-│
-├── src/                            # Application source code
-│   ├── app/                        # Next.js 15 app directory
-│   │   ├── (auth)/                 # Authentication routes
-│   │   ├── (dashboard)/            # User dashboard
-│   │   ├── (shop)/                 # Shopping and product pages
-│   │   ├── (design)/               # Design editor and gallery
-│   │   └── api/                    # API routes
-│   │
-│   ├── components/                 # Reusable React components
-│   │   ├── ui/                     # shadcn/ui base components
-│   │   ├── design/                 # Design editor components
-│   │   ├── product/                # Product display components
-│   │   └── ar/                     # AR/3D visualization
-│   │
-│   ├── lib/                        # Utilities and configurations
-│   │   ├── auth.ts                 # Authentication logic
-│   │   ├── db.ts                   # Database connection
-│   │   ├── ai/                     # AI integration
-│   │   ├── fabric/                 # Fabric.js utilities
-│   │   └── three/                  # Three.js utilities
-│   │
-│   ├── hooks/                      # Custom React hooks
-│   ├── store/                      # State management (Redux/Zustand)
-│   ├── types/                      # TypeScript type definitions
-│   └── styles/                     # CSS and styling files
-│
-├── public/                         # Static assets
-├── tests/                         # Test files
-├── docs/                          # Additional documentation
-├── logs/                          # Development logs
-├── certs/                         # SSL certificates
-├── postgres-data/                 # PostgreSQL data directory
-└── redis-data/                    # Redis data directory
-```
-
-## Configuration Details
-
-### Environment Variables
-
-The development environment requires several API keys and configuration values. See `.env.example` for a complete list. Key variables include:
-
-- **Database**: `DATABASE_URL` for PostgreSQL connection
-- **AI**: `GEMINI_API_KEY` for Google Gemini AI
-- **Payments**: Stripe API keys and webhook secrets
-- **Authentication**: NextAuth.js configuration
-- **File Storage**: Cloudinary or Vercel Blob configuration
-- **Fulfillment**: Printful and Printify API keys
-
-### SSL/HTTPS Development
-
-The development environment is configured for HTTPS to support:
-- Camera permissions for AR features
-- Secure API testing
-- Production-like environment
-
-SSL certificates are automatically generated using `mkcert` and stored in the `certs/` directory.
 
 ### Database Schema
 
-The PostgreSQL database includes comprehensive schemas for:
-- User management and authentication
-- Product catalog with variants
-- AI-generated designs storage
-- Shopping cart and orders
-- Gamification (points, achievements)
-- Social features (likes, shares)
-- Analytics and usage tracking
+The database includes the following main tables:
+- `users`: User accounts with authentication and role management
+- `products`: Product catalog with categories and base pricing
+- `product_variants`: Size and color variations for products
+- `product_images`: Product image assets
+- `product_specs`: Product specifications and details
+- `cart_items`: Shopping cart persistence for users and guests
+- `orders`: Order records with payment and fulfillment status
+- `order_items`: Individual items within orders
+- `ai_usage_stats`: AI generation usage tracking
+- `designs`: Saved design templates and user creations
 
-## Testing Strategy
+## API Documentation
 
-### Unit Testing
-- **Framework**: Jest with React Testing Library
-- **Coverage**: Minimum 70% coverage required
-- **Commands**: `just test` or `just test-coverage`
+### Public API Endpoints
 
-### End-to-End Testing
-- **Framework**: Playwright with TypeScript
-- **Features**: Design editor, checkout flow, AI generation
-- **Commands**: `just test-e2e` or `just test-e2e-ui`
+#### AI Design Generation
+- `POST /api/ai/generate` - Generate AI design
+  - Body: `{ prompt, productCategory, style }`
+  - Returns: Generated design data and usage stats
 
-### Visual Regression Testing
-- **Tool**: Playwright screenshots with comparison
-- **Coverage**: Key user interface components
-- **CI/CD**: Automated on pull requests
+- `GET /api/ai/usage` - Check AI usage limits
+  - Returns: Current usage and remaining limits
 
-## Deployment
+- `POST /api/ai/suggestions` - Get design suggestions
+  - Body: `{ category, style }`
+  - Returns: AI-generated design suggestions
 
-### Development Workflow
-1. Make changes in feature branches
-2. Pre-commit hooks ensure code quality
-3. Create pull request with automated testing
-4. Deploy to staging for review
-5. Merge to main for production deployment
+#### Cart Management
+- `GET /api/cart` - Get current cart
+- `POST /api/cart` - Add item to cart
+  - Body: `{ productId, variantId, quantity, customization }`
+- `PUT /api/cart/[id]` - Update cart item quantity
+- `DELETE /api/cart/[id]` - Remove item from cart
+
+#### Products
+- `GET /api/products` - List all products
+- `GET /api/products/[id]` - Get product details
+
+#### Checkout
+- `POST /api/checkout` - Create Stripe checkout session
+  - Body: `{ items, successUrl, cancelUrl }`
+- `POST /api/webhooks/stripe` - Stripe webhook handler
+
+### Protected API Endpoints
+
+#### User Authentication
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/session` - Get current session
+- `POST /api/auth/[...nextauth]` - NextAuth.js dynamic handler
+
+### Admin API Endpoints
+
+All admin endpoints require authentication and admin role.
+
+#### Admin Check
+- `GET /api/admin/check` - Verify admin status
+
+#### User Management
+- `POST /api/admin/users/role` - Update user role
+  - Body: `{ userId, role }`
+
+## User Features
+
+### AI Design Generation System
+
+The platform offers AI-powered design generation with intelligent constraints for each product type:
+
+#### Product-Specific Design Optimization
+- **T-Shirts**: Centered chest area design placement
+- **Caps**: Front panel design with curved adaptation
+- **Tote Bags**: Main surface design with proportional sizing
+
+#### Usage Tiers
+1. **FREE Tier** (Guest users)
+   - 2 AI generations per session
+   - Basic templates only
+   - Watermarked previews
+
+2. **REGISTERED Tier** (Logged-in users)
+   - 10 AI generations per day
+   - 50 AI generations per month
+   - Access to premium templates
+
+3. **PREMIUM Tier** (Paid subscription)
+   - 100 AI generations per month
+   - Priority generation queue
+   - Advanced AI features
+
+### Shopping Cart Features
+- Persistent cart storage for registered users
+- Guest cart support via session cookies
+- Automatic cart transfer on user login
+- Product customization storage
+- Real-time price calculations
+
+### Order Management
+- Order history and tracking
+- Order status updates (pending, processing, completed, cancelled)
+- Shipping information
+- Invoice generation
+- Email notifications
+
+## Admin Interface
+
+### Accessing the Admin Panel
+
+1. Login with an admin account
+2. Navigate to `/admin` or click "Admin Panel" in the user dropdown
+3. Admin users are identified by the `role` field in the database
+
+### Admin Dashboard Features
+
+#### Main Dashboard (`/admin`)
+- **Revenue Metrics**: Total revenue (30-day), average order value, conversion rates
+- **Order Overview**: Pending, completed, and cancelled orders summary
+- **AI Usage Statistics**: Daily generations, user tier distribution
+- **System Health**: Real-time monitoring of active users, carts, and system status
+- **Quick Navigation**: Direct links to all management sections
+
+#### User Management (`/admin/users`)
+- Complete user listing with search functionality
+- Role management (promote/demote users to admin)
+- User activity tracking:
+  - Total orders placed
+  - AI generations used
+  - Account creation date
+- Pagination support for large user bases
+- Export user data functionality
+
+#### Order Management (`/admin/orders`)
+- Comprehensive order listing with filters:
+  - Status filtering (all, pending, completed, cancelled)
+  - Date range selection
+  - Customer search
+- Order details view:
+  - Customer information
+  - Order items with customizations
+  - Payment status
+  - Shipping details
+- Bulk order operations
+- Revenue analytics per order
+
+#### Product Management (`/admin/products`)
+- Visual product catalog with image previews
+- Product operations:
+  - Add new products
+  - Edit existing products
+  - Manage product status (active/inactive)
+- Variant management:
+  - Size variations
+  - Color options
+  - Pricing per variant
+- Category organization
+- Stock tracking
+
+#### Advanced Analytics (`/admin/analytics`)
+- **Revenue Analytics**:
+  - Daily revenue trend charts
+  - Monthly comparisons
+  - Product category performance
+- **AI Usage Patterns**:
+  - Usage by tier visualization
+  - Peak usage times
+  - Generation success rates
+- **System Monitoring**:
+  - Active users in real-time
+  - Database performance metrics
+  - API response times
+- **Conversion Metrics**:
+  - Cart abandonment rates
+  - User registration conversion
+  - Product view to purchase ratios
+
+### Creating an Admin User
+
+To make an existing user an admin:
+
+1. Run the admin setup script:
+```bash
+npx tsx scripts/setup-admin.ts
+```
+
+2. Or manually update via SQL:
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'user@example.com';
+```
+
+3. Or use the admin interface:
+   - Login as an existing admin
+   - Navigate to `/admin/users`
+   - Click the role toggle for the user
+
+## Development
+
+### Project Structure
+```
+tshop/
+├── app/                    # Next.js App Router pages
+│   ├── admin/             # Admin interface pages
+│   ├── api/               # API routes
+│   ├── auth/              # Authentication pages
+│   ├── ai-design/         # AI design generation page
+│   ├── products/          # Product catalog
+│   └── checkout/          # Checkout flow
+├── components/            # React components
+│   ├── admin/            # Admin-specific components
+│   ├── cart/             # Shopping cart components
+│   ├── design/           # Design editor components
+│   └── navigation/       # Navigation components
+├── lib/                   # Utility functions and configurations
+│   ├── db-direct.ts      # Database connection and queries
+│   ├── auth.ts           # NextAuth configuration
+│   ├── stripe.ts         # Stripe integration
+│   ├── cart.ts           # Cart service logic
+│   └── ai/               # AI integration modules
+├── scripts/              # Utility scripts
+│   ├── setup-admin.ts    # Admin user setup
+│   └── check-admin.ts    # Admin verification
+└── public/               # Static assets
+```
+
+### Running Tests
+```bash
+npm test
+```
+
+### Building for Production
+```bash
+npm run build
+npm run start
+```
+
+### Database Operations
+
+Check database connection:
+```bash
+npx tsx scripts/check-admin.ts
+```
+
+Run custom SQL queries:
+```bash
+psql -U tshop_user -d tshop_dev -p 5433 -h localhost
+```
+
+### Code Style
+
+The project uses:
+- TypeScript for type safety
+- ESLint for code linting
+- Prettier for code formatting
+- Conventional commits
+
+Run linting:
+```bash
+npm run lint
+```
+
+## Production Deployment
 
 ### Vercel Deployment
-The project is optimized for Vercel deployment with:
-- Automatic deployments from Git
-- Environment variable management
-- Edge functions for API routes
-- Image optimization and CDN
 
-### Self-Hosting
-The NixOS module included in `flake.nix` provides:
-- Complete production deployment configuration
-- Automatic SSL with Let's Encrypt
-- Database and Redis setup
-- Service hardening and monitoring
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Configure environment variables in Vercel dashboard
+4. Deploy
 
-## Performance Optimizations
+### Database Setup for Production
 
-### Frontend Performance
-- **Code Splitting**: Route and component-level splitting
-- **Image Optimization**: Next.js Image with multiple formats
-- **Bundle Analysis**: Webpack bundle analyzer integration
-- **PWA**: Service worker for offline functionality
+1. Use a managed PostgreSQL service:
+   - Vercel Postgres
+   - Railway
+   - Supabase
+   - Neon
 
-### Backend Performance
-- **Database**: Optimized queries with proper indexing
-- **Caching**: Multi-layer caching with Redis
-- **API**: Rate limiting and request optimization
-- **AI**: Smart model selection for cost efficiency
+2. Update the connection configuration in `lib/db-direct.ts`:
+```javascript
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
+```
 
-## Security Features
+3. Run the database initialization script on production database
 
-### Application Security
-- **Authentication**: Secure JWT with NextAuth.js
-- **Authorization**: Role-based access control
-- **API Security**: Rate limiting and input validation
-- **Data Protection**: Encrypted sensitive data
+### Environment Variables for Production
 
-### Infrastructure Security
-- **HTTPS**: TLS 1.3 encryption everywhere
-- **Headers**: Security headers implementation
-- **Secrets**: Environment-based secret management
-- **Database**: Connection encryption and access control
+Critical environment variables to configure:
 
-## Contributing
+```env
+# Required
+DATABASE_URL=your-production-database-url
+NEXTAUTH_URL=https://yourdomain.com
+NEXTAUTH_SECRET=generate-strong-secret
+GOOGLE_GEMINI_API_KEY=your-api-key
+STRIPE_SECRET_KEY=your-stripe-secret
+STRIPE_WEBHOOK_SECRET=your-webhook-secret
 
-### Development Setup
-1. Fork the repository
-2. Set up the development environment with `nix develop`
-3. Run `just init` to initialize everything
-4. Make your changes following the code style
-5. Ensure all tests pass with `just quality`
-6. Submit a pull request
+# Optional but recommended
+GOOGLE_CLIENT_ID=for-oauth-login
+GOOGLE_CLIENT_SECRET=for-oauth-login
+PRINTFUL_API_KEY=for-fulfillment
+PRINTIFY_API_KEY=for-fulfillment
+```
 
-### Code Standards
-- **TypeScript**: Strict mode enabled
-- **ESLint**: Configured for Next.js and React
-- **Prettier**: Consistent code formatting
-- **Commits**: Conventional commit messages
+### Security Checklist
 
-### Testing Requirements
-- Unit tests for new features
-- E2E tests for critical user flows
-- Visual regression tests for UI changes
-- Performance testing for optimization
-
-## Documentation
-
-- **Technical Specs**: [FRONTEND_TECHNICAL_SPECS.md](./FRONTEND_TECHNICAL_SPECS.md)
-- **Backend Architecture**: [BACKEND_ARCHITECTURE_SPECS.md](./BACKEND_ARCHITECTURE_SPECS.md)
-- **API Documentation**: Available at `/api-docs` when running
-- **Component Documentation**: Storybook at `/storybook`
+- [ ] Generate strong NEXTAUTH_SECRET
+- [ ] Enable SSL for database connections
+- [ ] Configure CORS for API endpoints
+- [ ] Set up rate limiting
+- [ ] Enable security headers
+- [ ] Configure CSP (Content Security Policy)
+- [ ] Set up monitoring and alerting
+- [ ] Regular security audits
 
 ## Troubleshooting
 
 ### Common Issues
 
-**PostgreSQL Connection Issues**
+#### Database Connection Errors
 ```bash
-# Check if PostgreSQL is running
-just health
+# Check PostgreSQL is running
+sudo systemctl status postgresql
 
-# Restart database
-just stop && just dev-db
+# Verify connection details
+psql -U tshop_user -d tshop_dev -p 5433 -h localhost -c "SELECT 1"
+
+# Check database exists
+psql -U postgres -c "\l"
 ```
 
-**SSL Certificate Issues**
+#### AI Generation Not Working
+- Verify Google Gemini API key is valid
+- Check usage limits in `/admin/analytics`
+- Review error logs in browser console
+- Ensure network connectivity to Google APIs
+
+#### Authentication Issues
+- Verify NEXTAUTH_SECRET is set
+- Check OAuth provider configurations
+- Ensure callback URLs match configuration
+- Clear browser cookies and retry
+
+#### Payment Processing Issues
+- Verify Stripe keys (publishable and secret)
+- Check webhook endpoint configuration
+- Test with Stripe CLI for local development:
 ```bash
-# Regenerate certificates
-rm -rf certs/
-just ssl-setup
+stripe listen --forward-to localhost:3001/api/webhooks/stripe
 ```
 
-**Node Module Issues**
-```bash
-# Clean install
-just clean-install
+#### Admin Access Issues
+- Verify user role in database:
+```sql
+SELECT id, email, role FROM users WHERE email = 'your-email@example.com';
 ```
+- Run admin setup script if needed
+- Check browser console for API errors
 
-**Port Conflicts**
-```bash
-# Kill conflicting processes
-just dev-clean-processes
-```
+### Performance Optimization
 
-### Getting Help
+#### Database Performance
+- Add indexes for frequently queried columns
+- Use connection pooling (already configured)
+- Monitor slow queries
+- Regular VACUUM and ANALYZE
 
-1. Check the [troubleshooting guide](./docs/TROUBLESHOOTING.md)
-2. Review the [FAQ](./docs/FAQ.md)
-3. Open an issue on GitHub
-4. Join our Discord community
+#### Application Performance
+- Enable Next.js production optimizations
+- Use CDN for static assets
+- Implement caching strategies
+- Optimize images with Next.js Image component
+
+### Monitoring and Logs
+
+#### Server Logs
+- Check terminal output in development
+- Use Vercel Functions logs in production
+- Implement structured logging with winston or pino
+
+#### Database Logs
+- Enable query logging in PostgreSQL
+- Monitor connection pool statistics
+- Track slow queries
+
+#### Error Tracking
+- Implement Sentry for production error tracking
+- Use browser error boundaries
+- Log API errors with context
+
+## Support and Resources
+
+### Documentation
+- [Next.js Documentation](https://nextjs.org/docs)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [Stripe API Reference](https://stripe.com/docs/api)
+- [Google Gemini API](https://ai.google.dev/)
+
+### Community
+- GitHub Issues for bug reports
+- Discord community for support
+- Stack Overflow for technical questions
+
+### Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new features
+5. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software. All rights reserved.
+
+## Roadmap
+
+See `.agent-os/product/roadmap.md` for detailed development phases:
+
+- Phase 1: Core Platform Foundation (Completed)
+- Phase 2: AI Design Generation (Completed)
+- Phase 3: Advanced Design Editor (In Progress)
+- Phase 4: Fulfillment Integration (Planned)
+- Phase 5: Platform Polish & Advanced Features (Planned)
 
 ## Acknowledgments
 
-- **NixOS Community** for the incredible package manager and ecosystem
-- **Next.js Team** for the outstanding React framework
-- **Vercel** for deployment and hosting solutions
-- **Google** for Gemini AI API
-- **Open Source Contributors** who make projects like this possible
-
----
-
-**Built using NixOS, Next.js, and modern web technologies**
+Built with modern web technologies and best practices for scalability, security, and user experience.

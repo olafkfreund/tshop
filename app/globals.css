@@ -292,6 +292,161 @@
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/70;
   }
+
+  /* Mobile-specific utilities */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Mobile optimized text sizes */
+  .text-mobile-xs { font-size: 0.75rem; line-height: 1rem; }
+  .text-mobile-sm { font-size: 0.875rem; line-height: 1.25rem; }
+  .text-mobile-base { font-size: 1rem; line-height: 1.5rem; }
+  .text-mobile-lg { font-size: 1.125rem; line-height: 1.75rem; }
+  .text-mobile-xl { font-size: 1.25rem; line-height: 1.75rem; }
+  .text-mobile-2xl { font-size: 1.5rem; line-height: 2rem; }
+
+  /* Mobile-first responsive spacing */
+  .space-mobile-y-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.25rem;
+  }
+  .space-mobile-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem;
+  }
+  .space-mobile-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.75rem;
+  }
+  .space-mobile-y-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem;
+  }
+
+  /* Mobile gesture animations */
+  .swipe-up-enter {
+    transform: translateY(100%);
+  }
+  .swipe-up-enter-active {
+    transform: translateY(0);
+    transition: transform 300ms ease-out;
+  }
+  .swipe-down-exit {
+    transform: translateY(0);
+  }
+  .swipe-down-exit-active {
+    transform: translateY(100%);
+    transition: transform 300ms ease-in;
+  }
+
+  /* Mobile-optimized focus states */
+  .focus-mobile {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Prevent zoom on form inputs on iOS */
+  .no-zoom {
+    font-size: 16px !important;
+    transform-origin: left top;
+  }
+}
+
+/* Mobile-specific media queries */
+@media (max-width: 768px) {
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Mobile-specific button styles */
+  .btn-mobile {
+    @apply py-3 px-4 text-base font-semibold min-h-[44px] touch-target;
+  }
+
+  /* Mobile-specific input styles */
+  .input-mobile {
+    @apply py-3 px-4 text-base min-h-[44px] no-zoom;
+  }
+
+  /* Mobile card spacing */
+  .card-mobile {
+    @apply mx-4 mb-4 rounded-xl;
+  }
+
+  /* Mobile navigation spacing */
+  .nav-mobile {
+    @apply px-4 py-3;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Hide mobile-only elements on desktop */
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* PWA-specific styles */
+@media all and (display-mode: standalone) {
+  /* Styles when running as installed PWA */
+  body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in content areas */
+  .selectable-text,
+  input,
+  textarea {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  /* PWA status bar styling */
+  .pwa-status-bar {
+    padding-top: env(safe-area-inset-top);
+    background: var(--background);
+  }
+}
+
+/* Haptic feedback for supported devices */
+@media (hover: none) and (pointer: coarse) {
+  .haptic-light:active {
+    /* Light haptic feedback trigger */
+    transform: scale(0.98);
+  }
+  
+  .haptic-medium:active {
+    /* Medium haptic feedback trigger */
+    transform: scale(0.96);
+  }
+  
+  .haptic-heavy:active {
+    /* Heavy haptic feedback trigger */
+    transform: scale(0.94);
+  }
 }
 
 /* Print Styles */

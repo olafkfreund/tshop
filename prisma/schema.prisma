@@ -3,12 +3,13 @@
 
 generator client {
   provider = "prisma-client-js"
-  binaryTargets = ["linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // User model
@@ -21,6 +22,12 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Team/Organization features
+  primaryTeamId String? @map("primary_team_id")
+  jobTitle      String? @map("job_title")
+  department    String?
+  isActive      Boolean @default(true) @map("is_active")
+
   // AI usage tracking
   aiUsage AIUsageStats?
 
@@ -30,6 +37,26 @@ model User {
   orders   Order[]
   designs  Design[]
   cartItems CartItem[]
+  
+  // Team relations
+  primaryTeam     Team? @relation("PrimaryTeam", fields: [primaryTeamId], references: [id])
+  teamMemberships TeamMember[]
+  teamInvites     TeamInvite[]
+  createdTeams    Team[] @relation("TeamCreator")
+  
+  // Collaboration relations
+  designComments  DesignComment[]
+  designShares    DesignShare[]
+  
+  // Security and compliance relations
+  auditLogs              AuditLog[]
+  securityIncidents      SecurityIncident[]
+  assignedIncidents      SecurityIncident[] @relation("AssignedIncidents")
+  createdPolicies        CompliancePolicy[] @relation("CreatedPolicies")
+  approvedPolicies       CompliancePolicy[] @relation("ApprovedPolicies")
+  complianceViolations   ComplianceViolation[]
+  resolvedViolations     ComplianceViolation[] @relation("ResolvedViolations")
+  createdRetentionPolicies DataRetentionPolicy[] @relation("CreatedRetentionPolicies")
 
   @@map("users")
 }
@@ -106,6 +133,7 @@ model Product {
   specs       ProductSpecs?
   orderItems  OrderItem[]
   cartItems   CartItem[]
+  pricingTiers PricingTier[]
 
   @@map("products")
 }
@@ -165,6 +193,7 @@ model ProductSpecs {
 model Design {
   id          String         @id @default(cuid())
   userId      String?        @map("user_id")
+  teamId      String?        @map("team_id")
   name        String
   description String?
   prompt      String? // Original AI prompt if AI-generated
@@ -172,13 +201,27 @@ model Design {
   category    String
   tags        String // JSON string array
   isPublic    Boolean        @default(false) @map("is_public")
+  isTemplate  Boolean        @default(false) @map("is_template") // For team templates
   usageCount  Int            @default(0) @map("usage_count")
+  
+  // Collaboration features
+  status      String         @default("DRAFT") // DRAFT, REVIEW, APPROVED, ARCHIVED
+  approvedBy  String?        @map("approved_by")
+  approvedAt  DateTime?      @map("approved_at")
+  version     Int            @default(1)
+  parentId    String?        @map("parent_id") // For design versioning
+  
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
 
   // Relations
-  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  orderItems OrderItem[]
+  user         User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  team         Team?            @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  parentDesign Design?          @relation("DesignVersions", fields: [parentId], references: [id])
+  childVersions Design[]        @relation("DesignVersions")
+  orderItems   OrderItem[]
+  comments     DesignComment[]
+  shares       DesignShare[]
 
   @@map("designs")
 }
@@ -206,6 +249,7 @@ model Order {
   user        User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
   items       OrderItem[]
   fulfillment FulfillmentOrder[]
+  teamOrder   TeamOrder?
 
   @@map("orders")
 }
@@ -273,6 +317,688 @@ model CartItem {
   @@map("cart_items")
 }
 
+// Team and collaboration models
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  website     String?
+  industry    String?
+  size        String? // "SMALL", "MEDIUM", "LARGE", "ENTERPRISE"
+  plan        String   @default("TEAM") // "TEAM", "BUSINESS", "ENTERPRISE"
+  
+  // Billing and limits
+  billingEmail    String? @map("billing_email")
+  monthlyAILimit  Int     @default(500) @map("monthly_ai_limit")
+  storageLimit    Int     @default(10000) @map("storage_limit") // MB
+  memberLimit     Int     @default(25) @map("member_limit")
+  
+  // Branding settings
+  customBranding  String? @map("custom_branding") // JSON
+  whiteLabel      Boolean @default(false) @map("white_label")
+  
+  // Settings
+  requireApproval Boolean @default(true) @map("require_approval")
+  allowPublicDesigns Boolean @default(false) @map("allow_public_designs")
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  createdBy     String  @map("created_by")
+  creator       User    @relation("TeamCreator", fields: [createdBy], references: [id])
+  primaryUsers  User[]  @relation("PrimaryTeam")
+  members       TeamMember[]
+  invites       TeamInvite[]
+  designs       Design[]
+  orders        TeamOrder[]
+  
+  // Security and compliance relations
+  auditLogs             AuditLog[]
+  securityIncidents     SecurityIncident[]
+  compliancePolicies    CompliancePolicy[]
+  complianceViolations  ComplianceViolation[]
+  retentionPolicies     DataRetentionPolicy[]
+  
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String   @map("team_id")
+  userId   String   @map("user_id")
+  role     String   @default("MEMBER") // "OWNER", "ADMIN", "DESIGNER", "MEMBER", "VIEWER"
+  permissions String @default("{}") // JSON array of specific permissions
+  joinedAt DateTime @default(now()) @map("joined_at")
+  
+  // Activity tracking
+  lastActiveAt DateTime? @map("last_active_at")
+  designCount  Int       @default(0) @map("design_count")
+  orderCount   Int       @default(0) @map("order_count")
+  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+model TeamInvite {
+  id        String   @id @default(cuid())
+  teamId    String   @map("team_id")
+  email     String
+  role      String   @default("MEMBER")
+  invitedBy String   @map("invited_by")
+  token     String   @unique
+  status    String   @default("PENDING") // "PENDING", "ACCEPTED", "REJECTED", "EXPIRED"
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  acceptedAt DateTime? @map("accepted_at")
+  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inviter User @relation(fields: [invitedBy], references: [id])
+  
+  @@unique([teamId, email])
+  @@map("team_invites")
+}
+
+model TeamOrder {
+  id            String   @id @default(cuid())
+  teamId        String   @map("team_id")
+  orderId       String   @map("order_id")
+  approvedBy    String?  @map("approved_by")
+  approvedAt    DateTime? @map("approved_at")
+  department    String?
+  costCenter    String?  @map("cost_center")
+  poNumber      String?  @map("po_number") // Purchase Order Number
+  notes         String?
+  volumeDiscount Decimal @default(0) @map("volume_discount")
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@unique([teamId, orderId])
+  @@map("team_orders")
+}
+
+model DesignComment {
+  id        String   @id @default(cuid())
+  designId  String   @map("design_id")
+  userId    String   @map("user_id")
+  content   String
+  position  String?  // JSON coordinates for design annotations
+  status    String   @default("ACTIVE") // "ACTIVE", "RESOLVED", "DELETED"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  design Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("design_comments")
+}
+
+model DesignShare {
+  id         String   @id @default(cuid())
+  designId   String   @map("design_id")
+  sharedBy   String   @map("shared_by")
+  sharedWith String?  @map("shared_with") // Specific user, null for public share
+  teamId     String?  @map("team_id") // Share with team
+  shareType  String   @default("VIEW") // "VIEW", "COMMENT", "EDIT"
+  token      String   @unique // For secure sharing
+  expiresAt  DateTime? @map("expires_at")
+  password   String?  // Optional password protection
+  viewCount  Int      @default(0) @map("view_count")
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  design Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [sharedBy], references: [id], onDelete: Cascade)
+  
+  @@map("design_shares")
+}
+
+// Volume pricing tiers
+model PricingTier {
+  id          String  @id @default(cuid())
+  productId   String  @map("product_id")
+  teamId      String? @map("team_id") // Null for global pricing
+  minQuantity Int     @map("min_quantity")
+  maxQuantity Int?    @map("max_quantity")
+  discountPercent Decimal @map("discount_percent")
+  fixedPrice  Decimal? @map("fixed_price") // Alternative to discount
+  validFrom   DateTime @default(now()) @map("valid_from")
+  validUntil  DateTime? @map("valid_until")
+  isActive    Boolean @default(true) @map("is_active")
+  
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("pricing_tiers")
+}
+
+// Enterprise analytics and reporting
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  teamId     String?  @map("team_id")
+  userId     String?  @map("user_id")
+  eventType  String   @map("event_type") // "DESIGN_CREATED", "ORDER_PLACED", etc.
+  category   String
+  action     String
+  label      String?
+  value      Int?
+  properties String   // JSON metadata
+  sessionId  String?  @map("session_id")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+  
+  @@index([teamId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("analytics_events")
+}
+
+// Security and compliance models
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  teamId       String?  @map("team_id")
+  action       String   // AuditAction enum values
+  resourceType String   @map("resource_type") // AuditResourceType enum values
+  resourceId   String?  @map("resource_id")
+  details      String   // JSON details
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  severity     String   @default("LOW") // AuditSeverity enum values
+  timestamp    DateTime @default(now())
+  
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team? @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, timestamp])
+  @@index([teamId, timestamp])
+  @@index([action, timestamp])
+  @@index([severity, timestamp])
+  @@map("audit_logs")
+}
+
+model SecurityIncident {
+  id          String   @id @default(cuid())
+  type        String   // Incident type (e.g., "BRUTE_FORCE_ATTEMPT")
+  severity    String   // "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  userId      String?  @map("user_id")
+  teamId      String?  @map("team_id")
+  title       String   
+  description String
+  details     String   // JSON details
+  status      String   @default("OPEN") // "OPEN", "INVESTIGATING", "RESOLVED", "FALSE_POSITIVE"
+  assignedTo  String?  @map("assigned_to")
+  detectedAt  DateTime @map("detected_at")
+  resolvedAt  DateTime? @map("resolved_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  user User? @relation(fields: [userId], references: [id])
+  team Team? @relation(fields: [teamId], references: [id])
+  assignee User? @relation("AssignedIncidents", fields: [assignedTo], references: [id])
+  
+  @@index([severity, status, createdAt])
+  @@index([teamId, status, createdAt])
+  @@map("security_incidents")
+}
+
+model CompliancePolicy {
+  id          String   @id @default(cuid())
+  teamId      String   @map("team_id")
+  policyType  String   @map("policy_type") // "DATA_RETENTION", "ACCESS_CONTROL", "ENCRYPTION", etc.
+  name        String
+  description String?
+  rules       String   // JSON rules configuration
+  isActive    Boolean  @default(true) @map("is_active")
+  isRequired  Boolean  @default(false) @map("is_required") // System-required vs. optional
+  createdBy   String   @map("created_by")
+  approvedBy  String?  @map("approved_by")
+  approvedAt  DateTime? @map("approved_at")
+  effectiveFrom DateTime @default(now()) @map("effective_from")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator User @relation("CreatedPolicies", fields: [createdBy], references: [id])
+  approver User? @relation("ApprovedPolicies", fields: [approvedBy], references: [id])
+  
+  violations ComplianceViolation[]
+  
+  @@index([teamId, isActive])
+  @@index([policyType, isActive])
+  @@map("compliance_policies")
+}
+
+model ComplianceViolation {
+  id         String   @id @default(cuid())
+  policyId   String   @map("policy_id")
+  teamId     String   @map("team_id")
+  userId     String?  @map("user_id")
+  violationType String @map("violation_type")
+  severity   String   @default("MEDIUM") // "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  title      String
+  description String
+  details    String   // JSON details about the violation
+  status     String   @default("OPEN") // "OPEN", "ACKNOWLEDGED", "RESOLVED", "WAIVED"
+  detectedAt DateTime @map("detected_at")
+  resolvedAt DateTime? @map("resolved_at")
+  resolvedBy String?  @map("resolved_by")
+  resolution String?  // Resolution details
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  policy CompliancePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+  resolver User? @relation("ResolvedViolations", fields: [resolvedBy], references: [id])
+  
+  @@index([teamId, status, createdAt])
+  @@index([severity, status, createdAt])
+  @@index([policyId, status])
+  @@map("compliance_violations")
+}
+
+model DataRetentionPolicy {
+  id         String   @id @default(cuid())
+  teamId     String   @map("team_id")
+  dataType   String   @map("data_type") // "DESIGNS", "ORDERS", "AUDIT_LOGS", "USER_DATA"
+  retentionPeriodDays Int @map("retention_period_days")
+  autoDelete Boolean  @default(true) @map("auto_delete")
+  archiveBeforeDelete Boolean @default(true) @map("archive_before_delete")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdBy  String   @map("created_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  creator User @relation("CreatedRetentionPolicies", fields: [createdBy], references: [id])
+  
+  @@unique([teamId, dataType])
+  @@map("data_retention_policies")
+}
+
+// MARKETPLACE MODELS
+
+// Designer Profile for marketplace
+model DesignerProfile {
+  id                  String    @id @default(cuid())
+  userId              String    @unique @map("user_id")
+  displayName         String    @map("display_name")
+  bio                 String?
+  profileImage        String?   @map("profile_image")
+  coverImage          String?   @map("cover_image")
+  website             String?
+  instagram           String?
+  twitter             String?
+  
+  // Marketplace stats
+  totalEarnings       Decimal   @default(0) @map("total_earnings")
+  totalSales          Int       @default(0) @map("total_sales")
+  averageRating       Decimal   @default(0) @map("average_rating")
+  reviewCount         Int       @default(0) @map("review_count")
+  followerCount       Int       @default(0) @map("follower_count")
+  
+  // Verification and status
+  isVerified          Boolean   @default(false) @map("is_verified")
+  isActive            Boolean   @default(true) @map("is_active")
+  tier                String    @default("STARTER") // STARTER, PRO, ELITE
+  
+  // Payout preferences
+  payoutMethod        String?   @map("payout_method") // PAYPAL, STRIPE, BANK
+  payoutEmail         String?   @map("payout_email")
+  minimumPayout       Decimal   @default(25) @map("minimum_payout")
+  
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  marketplaceDesigns  MarketplaceDesign[]
+  payouts             DesignerPayout[]
+  followers           DesignerFollower[] @relation("FollowedDesigner")
+  following           DesignerFollower[] @relation("FollowerUser")
+  contestEntries      ContestEntry[]
+  reviews             DesignerReview[]
+
+  @@map("designer_profiles")
+}
+
+// Marketplace design listings
+model MarketplaceDesign {
+  id              String    @id @default(cuid())
+  designId        String    @map("design_id")
+  designerId      String    @map("designer_id")
+  
+  // Listing details
+  title           String
+  description     String?
+  tags            String?   // Comma-separated tags
+  category        String    // GRAPHIC, TYPOGRAPHY, ABSTRACT, etc.
+  
+  // Pricing and licensing
+  basePrice       Decimal   @map("base_price")
+  licenseType     String    @map("license_type") // STANDARD, EXTENDED, EXCLUSIVE
+  isExclusive     Boolean   @default(false) @map("is_exclusive")
+  royaltyRate     Decimal   @default(0.30) @map("royalty_rate") // 30% default
+  
+  // Status and visibility
+  status          String    @default("REVIEW") // DRAFT, REVIEW, APPROVED, REJECTED, ARCHIVED
+  isPublished     Boolean   @default(false) @map("is_published")
+  isFeatured      Boolean   @default(false) @map("is_featured")
+  
+  // Stats
+  viewCount       Int       @default(0) @map("view_count")
+  likeCount       Int       @default(0) @map("like_count")
+  downloadCount   Int       @default(0) @map("download_count")
+  salesCount      Int       @default(0) @map("sales_count")
+  totalEarnings   Decimal   @default(0) @map("total_earnings")
+  
+  // SEO and discovery
+  slug            String?   @unique
+  keywords        String?
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  publishedAt     DateTime? @map("published_at")
+
+  // Relations
+  design          Design           @relation(fields: [designId], references: [id], onDelete: Cascade)
+  designer        DesignerProfile  @relation(fields: [designerId], references: [id], onDelete: Cascade)
+  purchases       DesignPurchase[]
+  likes           DesignLike[]
+  collections     DesignCollection[] @relation("CollectionDesigns")
+
+  @@index([status, isPublished, createdAt])
+  @@index([category, isPublished, createdAt])
+  @@index([designerId, isPublished])
+  @@index([slug])
+  @@map("marketplace_designs")
+}
+
+// Design purchases/licenses
+model DesignPurchase {
+  id                    String    @id @default(cuid())
+  buyerId               String    @map("buyer_id")
+  designId              String    @map("design_id")
+  marketplaceDesignId   String    @map("marketplace_design_id")
+  
+  // Purchase details
+  licenseType           String    @map("license_type")
+  purchasePrice         Decimal   @map("purchase_price")
+  royaltyAmount         Decimal   @map("royalty_amount")
+  platformFee           Decimal   @map("platform_fee")
+  
+  // Usage rights
+  usageRights           String?   @map("usage_rights") // JSON string with usage permissions
+  expiresAt             DateTime? @map("expires_at")
+  
+  // Transaction
+  paymentIntentId       String?   @map("payment_intent_id")
+  stripeChargeId        String?   @map("stripe_charge_id")
+  
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  buyer                 User              @relation(fields: [buyerId], references: [id])
+  marketplaceDesign     MarketplaceDesign @relation(fields: [marketplaceDesignId], references: [id])
+
+  @@index([buyerId, createdAt])
+  @@index([marketplaceDesignId, createdAt])
+  @@map("design_purchases")
+}
+
+// Designer payouts
+model DesignerPayout {
+  id              String    @id @default(cuid())
+  designerId      String    @map("designer_id")
+  
+  amount          Decimal
+  currency        String    @default("USD")
+  method          String    // PAYPAL, STRIPE, BANK_TRANSFER
+  
+  // Transaction details
+  transactionId   String?   @map("transaction_id")
+  reference       String?
+  
+  // Status tracking
+  status          String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED, CANCELLED
+  processedAt     DateTime? @map("processed_at")
+  failureReason   String?   @map("failure_reason")
+  
+  // Period covered
+  periodStart     DateTime  @map("period_start")
+  periodEnd       DateTime  @map("period_end")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  designer        DesignerProfile @relation(fields: [designerId], references: [id])
+
+  @@index([designerId, createdAt])
+  @@index([status, createdAt])
+  @@map("designer_payouts")
+}
+
+// Following system for designers
+model DesignerFollower {
+  id              String    @id @default(cuid())
+  followerId      String    @map("follower_id")
+  designerId      String    @map("designer_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  follower        DesignerProfile @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
+  designer        DesignerProfile @relation("FollowedDesigner", fields: [designerId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, designerId])
+  @@index([designerId, createdAt])
+  @@index([followerId, createdAt])
+  @@map("designer_followers")
+}
+
+// Design likes
+model DesignLike {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  designId        String    @map("design_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  design          MarketplaceDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, designId])
+  @@index([designId, createdAt])
+  @@index([userId, createdAt])
+  @@map("design_likes")
+}
+
+// Design collections (curated lists)
+model DesignCollection {
+  id              String    @id @default(cuid())
+  creatorId       String    @map("creator_id")
+  
+  name            String
+  description     String?
+  isPublic        Boolean   @default(true) @map("is_public")
+  slug            String?   @unique
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  creator         User              @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  designs         MarketplaceDesign[] @relation("CollectionDesigns")
+
+  @@index([creatorId, isPublic])
+  @@index([slug])
+  @@map("design_collections")
+}
+
+// Design contests
+model DesignContest {
+  id              String    @id @default(cuid())
+  
+  title           String
+  description     String
+  brief           String?
+  rules           String?
+  
+  // Contest timing
+  startDate       DateTime  @map("start_date")
+  endDate         DateTime  @map("end_date")
+  votingEndDate   DateTime? @map("voting_end_date")
+  
+  // Prizes
+  firstPrize      Decimal?  @map("first_prize")
+  secondPrize     Decimal?  @map("second_prize")
+  thirdPrize      Decimal?  @map("third_prize")
+  totalPrizePool  Decimal   @map("total_prize_pool")
+  
+  // Contest settings
+  maxEntries      Int?      @map("max_entries")
+  entryFee        Decimal?  @map("entry_fee")
+  targetCategory  String?   @map("target_category")
+  
+  // Status
+  status          String    @default("DRAFT") // DRAFT, ACTIVE, VOTING, COMPLETED, CANCELLED
+  isPublic        Boolean   @default(true) @map("is_public")
+  isFeatured      Boolean   @default(false) @map("is_featured")
+  
+  // Stats
+  entryCount      Int       @default(0) @map("entry_count")
+  participantCount Int      @default(0) @map("participant_count")
+  viewCount       Int       @default(0) @map("view_count")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  entries         ContestEntry[]
+  votes           ContestVote[]
+
+  @@index([status, startDate])
+  @@index([endDate, status])
+  @@map("design_contests")
+}
+
+// Contest entries
+model ContestEntry {
+  id              String    @id @default(cuid())
+  contestId       String    @map("contest_id")
+  designerId      String    @map("designer_id")
+  designId        String    @map("design_id")
+  
+  title           String
+  description     String?
+  
+  // Entry status
+  isWithdrawn     Boolean   @default(false) @map("is_withdrawn")
+  rank            Int?      // Final ranking after contest
+  
+  // Stats
+  voteCount       Int       @default(0) @map("vote_count")
+  averageRating   Decimal   @default(0) @map("average_rating")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  contest         DesignContest   @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  designer        DesignerProfile @relation(fields: [designerId], references: [id], onDelete: Cascade)
+  design          Design          @relation(fields: [designId], references: [id], onDelete: Cascade)
+  votes           ContestVote[]
+
+  @@unique([contestId, designId])
+  @@index([contestId, voteCount])
+  @@index([designerId, createdAt])
+  @@map("contest_entries")
+}
+
+// Contest voting
+model ContestVote {
+  id              String    @id @default(cuid())
+  contestId       String    @map("contest_id")
+  entryId         String    @map("entry_id")
+  voterId         String    @map("voter_id")
+  
+  rating          Int       // 1-5 star rating
+  comment         String?
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  contest         DesignContest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  entry           ContestEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  voter           User          @relation(fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, voterId])
+  @@index([contestId, rating])
+  @@index([entryId, createdAt])
+  @@map("contest_votes")
+}
+
+// Designer reviews
+model DesignerReview {
+  id              String    @id @default(cuid())
+  designerId      String    @map("designer_id")
+  reviewerId      String    @map("reviewer_id")
+  orderId         String?   @map("order_id") // Optional link to order
+  
+  rating          Int       // 1-5 stars
+  comment         String?
+  
+  // Review status
+  isPublished     Boolean   @default(true) @map("is_published")
+  isFlagged       Boolean   @default(false) @map("is_flagged")
+  
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  designer        DesignerProfile @relation(fields: [designerId], references: [id], onDelete: Cascade)
+  reviewer        User            @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  order           Order?          @relation(fields: [orderId], references: [id])
+
+  @@unique([designerId, reviewerId, orderId])
+  @@index([designerId, rating])
+  @@index([reviewerId, createdAt])
+  @@map("designer_reviews")
+}
+
+// Update existing User model to include marketplace relations
+// Add these to the User model relations section:
+// designerProfile     DesignerProfile?
+// designPurchases     DesignPurchase[]
+// designLikes         DesignLike[]
+// designCollections   DesignCollection[]
+// contestVotes        ContestVote[]
+// designerReviews     DesignerReview[]
+
+// Update existing Design model to include marketplace relations
+// Add these to the Design model relations section:
+// marketplaceDesign   MarketplaceDesign?
+// contestEntries      ContestEntry[]
+
+// Update existing Order model to include marketplace relations
+// Add this to the Order model relations section:
+// designerReviews     DesignerReview[]
+
+// Note: Additional enum values for marketplace:
+// DesignerTier: "STARTER", "PRO", "ELITE"
+// LicenseType: "STANDARD", "EXTENDED", "EXCLUSIVE"
+// PayoutMethod: "PAYPAL", "STRIPE", "BANK_TRANSFER"
+// PayoutStatus: "PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"
+// ContestStatus: "DRAFT", "ACTIVE", "VOTING", "COMPLETED", "CANCELLED"
+// MarketplaceDesignStatus: "DRAFT", "REVIEW", "APPROVED", "REJECTED", "ARCHIVED"
+
 // Note: SQLite doesn't support enums, using strings with validation in app code
 // Valid values:
 // UserRole: "CUSTOMER", "DESIGNER", "ADMIN"
@@ -282,3 +1008,12 @@ model CartItem {
 // OrderStatus: "PENDING", "PROCESSING", "PRINTED", "SHIPPED", "DELIVERED", "CANCELLED"
 // FulfillmentProvider: "PRINTFUL", "PRINTIFY"
 // FulfillmentStatus: "PENDING", "PROCESSING", "PRINTED", "SHIPPED", "DELIVERED", "CANCELLED", "FAILED"
+// TeamRole: "OWNER", "ADMIN", "DESIGNER", "MEMBER", "VIEWER"
+// TeamSize: "SMALL", "MEDIUM", "LARGE", "ENTERPRISE"
+// TeamPlan: "TEAM", "BUSINESS", "ENTERPRISE"
+// DesignStatus: "DRAFT", "REVIEW", "APPROVED", "ARCHIVED"
+// InviteStatus: "PENDING", "ACCEPTED", "REJECTED", "EXPIRED"
+// ShareType: "VIEW", "COMMENT", "EDIT"
+// AuditAction: "LOGIN", "LOGOUT", "USER_CREATED", "DESIGN_CREATED", "SECURITY_VIOLATION", etc.
+// AuditResourceType: "USER", "TEAM", "DESIGN", "ORDER", "API_KEY", "WEBHOOK", "SYSTEM"
+// AuditSeverity: "LOW", "MEDIUM", "HIGH", "CRITICAL"

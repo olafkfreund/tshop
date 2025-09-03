@@ -1,23 +1,35 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ProductCategory } from '@/types'
 import Header from '@/components/navigation/header'
 import AIPromptForm from '@/components/design/ai-prompt-form'
 import DesignPreview from '@/components/design/design-preview'
 import TemplateGallery from '@/components/design/template-gallery'
+import ProductConfigModal from '@/components/cart/product-config-modal'
 import { PRODUCT_CATEGORIES } from '@/lib/constants'
 import { DesignTemplate } from '@/lib/design-templates'
 import { Palette, Cpu, Zap, Sparkles } from 'lucide-react'
 
 export default function DesignPage() {
-  const [selectedProduct, setSelectedProduct] = useState<ProductCategory>('TSHIRT')
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get('category') as ProductCategory
+  const [selectedProduct, setSelectedProduct] = useState<ProductCategory>(categoryParam || 'TSHIRT')
+  
+  // Update selected product when URL parameter changes
+  useEffect(() => {
+    if (categoryParam && categoryParam !== selectedProduct) {
+      setSelectedProduct(categoryParam)
+    }
+  }, [categoryParam, selectedProduct])
   const [generatedDesign, setGeneratedDesign] = useState<{
     imageUrl: string
     designId?: string
     prompt?: string
     metadata?: any
   } | null>(null)
+  const [showProductModal, setShowProductModal] = useState(false)
 
   const handleDesignGenerated = (designData: any) => {
     setGeneratedDesign(designData)
@@ -66,9 +78,8 @@ export default function DesignPage() {
   }
 
   const handleAddToCart = () => {
-    // Add to cart functionality
-    console.log('Add to cart:', generatedDesign)
-    alert('Cart functionality coming soon!')
+    if (!generatedDesign) return
+    setShowProductModal(true)
   }
 
   return (
@@ -238,6 +249,20 @@ export default function DesignPage() {
           </div>
         </div>
       </div>
+
+      {/* Product Configuration Modal */}
+      {showProductModal && generatedDesign && (
+        <ProductConfigModal
+          isOpen={showProductModal}
+          onClose={() => setShowProductModal(false)}
+          design={{
+            id: generatedDesign.designId || `design-${Date.now()}`,
+            imageUrl: generatedDesign.imageUrl,
+            prompt: generatedDesign.prompt
+          }}
+          productCategory={selectedProduct}
+        />
+      )}
     </div>
   )
 }

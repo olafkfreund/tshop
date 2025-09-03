@@ -164,7 +164,7 @@ export class DesignCanvas {
         }
 
         // Calculate scale to fit within reasonable bounds but keep it larger
-        const maxSize = 300 // Increased from 200 to make images bigger
+        const maxSize = 400 // Increased to make AI-generated images more prominent
         const scale = Math.min(maxSize / (img.width || 1), maxSize / (img.height || 1))
         
         img.set({

@@ -1,486 +1,484 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { ProductCategory } from '@prisma/client'
-import { DesignCanvas } from '@/lib/design-editor/canvas'
-import { FabricImage } from 'fabric'
+import { useEffect, useRef, useState } from 'react'
+import { DesignEditorService } from '@/lib/design-editor/fabric-service'
 import { 
   Type, 
-  Image as ImageIcon, 
   Square, 
   Circle, 
-  Triangle,
-  Trash2,
-  Copy,
-  RotateCcw,
-  RotateCw,
-  ZoomIn,
-  ZoomOut,
-  Move,
-  ArrowUp,
-  ArrowDown,
+  Triangle, 
+  Image, 
+  Trash2, 
+  Undo, 
+  Redo,
+  Download,
+  Upload,
+  Save,
+  Layers,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUp,
+  ChevronsDown,
+  Palette,
+  Bold,
+  Italic,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
   Eye,
   EyeOff
 } from 'lucide-react'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_ALIGNMENTS } from '@/lib/constants'
 
 interface CanvasEditorProps {
-  productCategory: ProductCategory
+  productType: 'TSHIRT' | 'CAP' | 'TOTE_BAG'
   initialDesign?: string
-  onDesignChange?: (dataURL: string) => void
-}
-
-interface ActiveObjectProperties {
-  left?: number
-  top?: number
-  scaleX?: number
-  scaleY?: number
-  angle?: number
-  fill?: string
-  fontSize?: number
-  fontFamily?: string
-  text?: string
-  visible?: boolean
+  aiImageUrl?: string
+  onSave?: (designData: string, imageData: string) => void
 }
 
 export default function CanvasEditor({ 
-  productCategory, 
-  initialDesign,
-  onDesignChange 
+  productType, 
+  initialDesign, 
+  aiImageUrl,
+  onSave 
 }: CanvasEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const designCanvasRef = useRef<DesignCanvas | null>(null)
-  const [activeObject, setActiveObject] = useState<any | null>(null)
-  const [zoom, setZoom] = useState(1)
-  const [selectedTool, setSelectedTool] = useState<string>('')
+  const editorServiceRef = useRef<DesignEditorService | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [selectedTool, setSelectedTool] = useState<string | null>(null)
+  const [activeProperties, setActiveProperties] = useState<any>(null)
+  const [textInput, setTextInput] = useState('')
+  const [fillColor, setFillColor] = useState('#000000')
+  const [fontSize, setFontSize] = useState(24)
+  const [fontFamily, setFontFamily] = useState('Arial')
+  const [showCompanyLogo, setShowCompanyLogo] = useState(true)
 
-  // Initialize canvas
   useEffect(() => {
-    if (canvasRef.current && !designCanvasRef.current) {
-      designCanvasRef.current = new DesignCanvas(canvasRef.current, productCategory)
-      
-      const canvas = designCanvasRef.current.getCanvas()
-      if (canvas) {
-        // Set up selection events
-        canvas.on('selection:created', (e) => {
-          setActiveObject(e.selected?.[0] || null)
-        })
-        
-        canvas.on('selection:updated', (e) => {
-          setActiveObject(e.selected?.[0] || null)
-        })
-        
-        canvas.on('selection:cleared', () => {
-          setActiveObject(null)
-        })
+    if (!canvasRef.current) return
 
-        // Set up change events
-        canvas.on('object:modified', () => {
-          if (onDesignChange && designCanvasRef.current) {
-            const dataURL = designCanvasRef.current.toDataURL()
-            onDesignChange(dataURL)
-          }
-        })
-      }
+    // Initialize the design editor
+    const editorService = new DesignEditorService()
+    editorService.initialize(canvasRef.current, productType)
+    editorServiceRef.current = editorService
 
-      // Load initial design if provided
-      if (initialDesign && designCanvasRef.current) {
-        // Use the DesignCanvas addImage method which handles scaling properly
-        designCanvasRef.current.addImage(initialDesign, {
-          // Override the default scaling to make the image larger
-          scaleX: 2,
-          scaleY: 2
-        }).then(() => {
-          // Trigger change event
-          if (onDesignChange && designCanvasRef.current) {
-            const dataURL = designCanvasRef.current.toDataURL()
-            onDesignChange(dataURL)
-          }
-        }).catch((error) => {
-          console.error('Error loading initial design:', error)
-        })
+    // Load initial design if provided
+    if (initialDesign) {
+      editorService.loadDesign(initialDesign)
+    }
+
+    // Load AI image if provided
+    if (aiImageUrl) {
+      console.log('Loading AI design with URL:', aiImageUrl)
+      editorService.loadAIDesign(aiImageUrl)
+    } else {
+      console.log('No aiImageUrl provided')
+    }
+
+    // Set up property update listener
+    const updateProperties = () => {
+      const props = editorService.getActiveObjectProperties()
+      setActiveProperties(props)
+      if (props) {
+        setFillColor(props.fill || '#000000')
+        if (props.fontSize) setFontSize(props.fontSize)
+        if (props.fontFamily) setFontFamily(props.fontFamily)
       }
+    }
+
+    // Listen for selection changes
+    const canvas = (editorService as any).canvas
+    if (canvas) {
+      canvas.on('selection:created', updateProperties)
+      canvas.on('selection:updated', updateProperties)
+      canvas.on('selection:cleared', () => setActiveProperties(null))
     }
 
     return () => {
-      if (designCanvasRef.current) {
-        designCanvasRef.current.dispose()
-        designCanvasRef.current = null
-      }
+      editorService.destroy()
     }
-  }, [productCategory, initialDesign, onDesignChange])
+  }, [productType, initialDesign, aiImageUrl])
 
-  // Tool handlers
-  const addText = () => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.addText('Your Text Here')
-      setSelectedTool('')
+  const handleAddText = () => {
+    if (textInput && editorServiceRef.current) {
+      editorServiceRef.current.addText(textInput, {
+        fontSize,
+        fontFamily,
+        fill: fillColor
+      })
+      setTextInput('')
     }
   }
 
-  const addShape = (type: 'rect' | 'circle' | 'triangle') => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.addShape(type)
-      setSelectedTool('')
+  const handleAddShape = (shapeType: 'rect' | 'circle' | 'triangle') => {
+    if (editorServiceRef.current) {
+      editorServiceRef.current.addShape(shapeType, {
+        fill: fillColor
+      })
     }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !designCanvasRef.current) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string
-      designCanvasRef.current?.addImage(imageUrl)
-    }
-    reader.readAsDataURL(file)
-    setSelectedTool('')
-  }
-
-  const deleteSelected = () => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.deleteSelected()
+    if (file && editorServiceRef.current) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          editorServiceRef.current?.addImage(event.target.result as string)
+        }
+      }
+      reader.readAsDataURL(file)
     }
   }
 
-  const duplicateSelected = () => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.duplicateSelected()
+  const handleColorChange = (color: string) => {
+    setFillColor(color)
+    if (editorServiceRef.current) {
+      editorServiceRef.current.updateActiveObject({ fill: color })
     }
   }
 
-  const undo = () => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.undo()
+  const handleFontSizeChange = (size: number) => {
+    setFontSize(size)
+    if (editorServiceRef.current) {
+      editorServiceRef.current.updateActiveObject({ fontSize: size })
     }
   }
 
-  const redo = () => {
-    if (designCanvasRef.current) {
-      designCanvasRef.current.redo()
+  const handleSave = () => {
+    if (editorServiceRef.current && onSave) {
+      const designData = editorServiceRef.current.exportDesign()
+      const imageData = editorServiceRef.current.exportAsImage('png')
+      onSave(designData, imageData)
     }
   }
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(zoom * 1.1, 3)
-    setZoom(newZoom)
-    designCanvasRef.current?.setZoom(newZoom)
-  }
-
-  const handleZoomOut = () => {
-    const newZoom = Math.max(zoom * 0.9, 0.1)
-    setZoom(newZoom)
-    designCanvasRef.current?.setZoom(newZoom)
-  }
-
-  const moveLayer = (direction: 'up' | 'down' | 'top' | 'bottom') => {
-    if (!designCanvasRef.current) return
-    
-    switch (direction) {
-      case 'up':
-        designCanvasRef.current.moveObjectUp()
-        break
-      case 'down':
-        designCanvasRef.current.moveObjectDown()
-        break
-      case 'top':
-        designCanvasRef.current.moveObjectToFront()
-        break
-      case 'bottom':
-        designCanvasRef.current.moveObjectToBack()
-        break
-    }
-  }
-
-  // Update object properties
-  const updateObjectProperty = (property: string, value: any) => {
-    if (!activeObject || !designCanvasRef.current) return
-
-    if (property === 'text' && activeObject.type === 'text') {
-      designCanvasRef.current.updateText(activeObject as any, { text: value })
-    } else {
-      activeObject.set(property, value)
-      designCanvasRef.current.getCanvas()?.renderAll()
-    }
-
-    if (onDesignChange) {
-      const dataURL = designCanvasRef.current.toDataURL()
-      onDesignChange(dataURL)
+  const handleExport = () => {
+    if (editorServiceRef.current) {
+      const imageData = editorServiceRef.current.exportAsImage('png')
+      const link = document.createElement('a')
+      link.download = `design-${productType.toLowerCase()}-${Date.now()}.png`
+      link.href = imageData
+      link.click()
     }
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-[700px] bg-gray-50 rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-2 p-4 bg-white border-b">
-        {/* Add Tools */}
-        <div className="flex items-center gap-1 border-r pr-2 mr-2">
-          <button
-            onClick={addText}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Add Text"
-          >
-            <Type className="h-4 w-4" />
-          </button>
-          
-          <label className="p-2 hover:bg-gray-100 rounded-md transition-colors cursor-pointer" title="Add Image">
-            <ImageIcon className="h-4 w-4" />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-            />
-          </label>
-          
-          <button
-            onClick={() => addShape('rect')}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Add Rectangle"
-          >
-            <Square className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={() => addShape('circle')}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Add Circle"
-          >
-            <Circle className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={() => addShape('triangle')}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Add Triangle"
-          >
-            <Triangle className="h-4 w-4" />
-          </button>
-        </div>
+      <div className="w-20 bg-white border-r p-2 flex flex-col items-center space-y-2">
+        <button
+          onClick={() => setSelectedTool('text')}
+          className={`p-3 rounded-lg hover:bg-gray-100 transition-colors ${
+            selectedTool === 'text' ? 'bg-indigo-100 text-indigo-600' : ''
+          }`}
+          title="Add Text"
+        >
+          <Type className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => handleAddShape('rect')}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Add Rectangle"
+        >
+          <Square className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => handleAddShape('circle')}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Add Circle"
+        >
+          <Circle className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => handleAddShape('triangle')}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Add Triangle"
+        >
+          <Triangle className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Upload Image"
+        >
+          <Image className="h-5 w-5" />
+        </button>
+        
+        <div className="h-px bg-gray-200 w-full my-2" />
+        
+        <button
+          onClick={() => editorServiceRef.current?.undo()}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Undo"
+        >
+          <Undo className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => editorServiceRef.current?.redo()}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Redo"
+        >
+          <Redo className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={() => editorServiceRef.current?.deleteSelected()}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors text-red-500"
+          title="Delete Selected"
+        >
+          <Trash2 className="h-5 w-5" />
+        </button>
+        
+        <div className="h-px bg-gray-200 w-full my-2" />
+        
+        <button
+          onClick={() => {
+            setShowCompanyLogo(!showCompanyLogo)
+            editorServiceRef.current?.toggleCompanyLogo()
+          }}
+          className={`p-3 rounded-lg transition-colors ${
+            showCompanyLogo 
+              ? 'bg-indigo-100 text-indigo-600' 
+              : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title="Toggle Company Logo"
+        >
+          {showCompanyLogo ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+        </button>
+        
+        <div className="flex-1" />
+        
+        <button
+          onClick={handleExport}
+          className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Export Design"
+        >
+          <Download className="h-5 w-5" />
+        </button>
+        
+        <button
+          onClick={handleSave}
+          className="p-3 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+          title="Save Design"
+        >
+          <Save className="h-5 w-5" />
+        </button>
+      </div>
 
-        {/* Edit Tools */}
-        <div className="flex items-center gap-1 border-r pr-2 mr-2">
-          <button
-            onClick={undo}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Undo"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={redo}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Redo"
-          >
-            <RotateCw className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={duplicateSelected}
-            disabled={!activeObject}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Duplicate"
-          >
-            <Copy className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={deleteSelected}
-            disabled={!activeObject}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-red-600"
-            title="Delete"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Layer Tools */}
-        <div className="flex items-center gap-1 border-r pr-2 mr-2">
-          <button
-            onClick={() => moveLayer('up')}
-            disabled={!activeObject}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Bring Forward"
-          >
-            <ArrowUp className="h-4 w-4" />
-          </button>
-          
-          <button
-            onClick={() => moveLayer('down')}
-            disabled={!activeObject}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Send Backward"
-          >
-            <ArrowDown className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Zoom Tools */}
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleZoomOut}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Zoom Out"
-          >
-            <ZoomOut className="h-4 w-4" />
-          </button>
-          
-          <span className="text-sm text-gray-600 px-2">
-            {Math.round(zoom * 100)}%
-          </span>
-          
-          <button
-            onClick={handleZoomIn}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title="Zoom In"
-          >
-            <ZoomIn className="h-4 w-4" />
-          </button>
+      {/* Canvas Area */}
+      <div className="flex-1 flex items-center justify-center bg-gray-100">
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          <canvas ref={canvasRef} />
         </div>
       </div>
 
-      <div className="flex flex-1">
-        {/* Canvas Area */}
-        <div className="flex-1 bg-gray-100 p-4 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <canvas ref={canvasRef} />
-          </div>
-        </div>
-
-        {/* Properties Panel */}
-        {activeObject && (
-          <div className="w-80 bg-white border-l p-4 overflow-y-auto">
-            <h3 className="font-semibold text-lg mb-4">Properties</h3>
-            
-            {/* Object Type */}
-            <div className="mb-4">
+      {/* Properties Panel */}
+      <div className="w-80 bg-white border-l p-4">
+        <h3 className="text-lg font-semibold mb-4">Properties</h3>
+        
+        {selectedTool === 'text' && (
+          <div className="space-y-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type
-              </label>
-              <p className="text-sm text-gray-600 capitalize">{activeObject.type}</p>
-            </div>
-
-            {/* Position */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  X Position
-                </label>
-                <input
-                  type="number"
-                  value={Math.round(activeObject.left || 0)}
-                  onChange={(e) => updateObjectProperty('left', parseInt(e.target.value))}
-                  className="input text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Y Position
-                </label>
-                <input
-                  type="number"
-                  value={Math.round(activeObject.top || 0)}
-                  onChange={(e) => updateObjectProperty('top', parseInt(e.target.value))}
-                  className="input text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Rotation */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Rotation
+                Text
               </label>
               <input
-                type="range"
-                min="0"
-                max="360"
-                value={activeObject.angle || 0}
-                onChange={(e) => updateObjectProperty('angle', parseInt(e.target.value))}
-                className="w-full"
+                type="text"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+                placeholder="Enter text..."
               />
             </div>
-
-            {/* Text Properties */}
-            {activeObject.type === 'text' && (
+            
+            <button
+              onClick={handleAddText}
+              className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Add Text
+            </button>
+          </div>
+        )}
+        
+        {activeProperties && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Fill Color
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  value={fillColor}
+                  onChange={(e) => handleColorChange(e.target.value)}
+                  className="h-10 w-20 border rounded cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={fillColor}
+                  onChange={(e) => handleColorChange(e.target.value)}
+                  className="flex-1 px-3 py-2 border rounded-lg"
+                />
+              </div>
+            </div>
+            
+            {activeProperties.type === 'i-text' && (
               <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Text
-                  </label>
-                  <textarea
-                    value={(activeObject as any).text || ''}
-                    onChange={(e) => updateObjectProperty('text', e.target.value)}
-                    className="input text-sm"
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="mb-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Font Size
                   </label>
-                  <input
-                    type="number"
-                    value={(activeObject as any).fontSize || 24}
-                    onChange={(e) => updateObjectProperty('fontSize', parseInt(e.target.value))}
-                    className="input text-sm"
-                    min="8"
-                    max="200"
-                  />
+                  <div className="flex space-x-2">
+                    <select
+                      value={fontSize}
+                      onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+                      className="flex-1 px-3 py-2 border rounded-lg"
+                    >
+                      {FONT_SIZES.map((size) => (
+                        <option key={size} value={size}>
+                          {size}px
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={fontSize}
+                      onChange={(e) => handleFontSizeChange(Number(e.target.value))}
+                      className="w-20 px-2 py-2 border rounded-lg text-sm"
+                      min="8"
+                      max="120"
+                    />
+                  </div>
                 </div>
                 
-                <div className="mb-4">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Font Family
                   </label>
                   <select
-                    value={(activeObject as any).fontFamily || 'Arial'}
-                    onChange={(e) => updateObjectProperty('fontFamily', e.target.value)}
-                    className="input text-sm"
+                    value={fontFamily}
+                    onChange={(e) => {
+                      setFontFamily(e.target.value)
+                      editorServiceRef.current?.updateActiveObject({ fontFamily: e.target.value })
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg"
                   >
-                    <option value="Arial">Arial</option>
-                    <option value="Helvetica">Helvetica</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Verdana">Verdana</option>
-                    <option value="Impact">Impact</option>
+                    {FONT_FAMILIES.map((font) => (
+                      <option key={font.name} value={font.family}>
+                        {font.name} ({font.category})
+                      </option>
+                    ))}
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Text Alignment
+                  </label>
+                  <div className="flex space-x-1">
+                    {TEXT_ALIGNMENTS.map((alignment) => (
+                      <button
+                        key={alignment.value}
+                        onClick={() => {
+                          editorServiceRef.current?.updateActiveObject({ 
+                            textAlign: alignment.value as any 
+                          })
+                        }}
+                        className="flex items-center justify-center px-3 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                        title={alignment.label}
+                      >
+                        {alignment.value === 'left' && <AlignLeft className="h-4 w-4" />}
+                        {alignment.value === 'center' && <AlignCenter className="h-4 w-4" />}
+                        {alignment.value === 'right' && <AlignRight className="h-4 w-4" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
-
-            {/* Fill Color */}
-            {activeObject.type !== 'image' && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Fill Color
-                </label>
-                <input
-                  type="color"
-                  value={(activeObject as any).fill || '#000000'}
-                  onChange={(e) => updateObjectProperty('fill', e.target.value)}
-                  className="w-full h-10 border rounded-md cursor-pointer"
-                />
-              </div>
-            )}
-
-            {/* Visibility */}
-            <div className="mb-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={activeObject.visible !== false}
-                  onChange={(e) => updateObjectProperty('visible', e.target.checked)}
-                  className="mr-2"
-                />
-                <span className="text-sm font-medium text-gray-700">Visible</span>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Opacity
               </label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={(activeProperties.opacity || 1) * 100}
+                onChange={(e) => {
+                  editorServiceRef.current?.updateActiveObject({ 
+                    opacity: Number(e.target.value) / 100 
+                  })
+                }}
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Layer Order
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => editorServiceRef.current?.bringToFront()}
+                  className="flex items-center justify-center px-3 py-2 border rounded-lg hover:bg-gray-50"
+                  title="Bring to Front"
+                >
+                  <ChevronsUp className="h-4 w-4 mr-1" />
+                  Front
+                </button>
+                <button
+                  onClick={() => editorServiceRef.current?.sendToBack()}
+                  className="flex items-center justify-center px-3 py-2 border rounded-lg hover:bg-gray-50"
+                  title="Send to Back"
+                >
+                  <ChevronsDown className="h-4 w-4 mr-1" />
+                  Back
+                </button>
+                <button
+                  onClick={() => editorServiceRef.current?.bringForward()}
+                  className="flex items-center justify-center px-3 py-2 border rounded-lg hover:bg-gray-50"
+                  title="Bring Forward"
+                >
+                  <ChevronUp className="h-4 w-4 mr-1" />
+                  Forward
+                </button>
+                <button
+                  onClick={() => editorServiceRef.current?.sendBackward()}
+                  className="flex items-center justify-center px-3 py-2 border rounded-lg hover:bg-gray-50"
+                  title="Send Backward"
+                >
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                  Backward
+                </button>
+              </div>
             </div>
           </div>
         )}
+        
+        {!selectedTool && !activeProperties && (
+          <p className="text-gray-500 text-sm">
+            Select a tool or click on an object to edit its properties
+          </p>
+        )}
       </div>
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="hidden"
+      />
     </div>
   )
 }

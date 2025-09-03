@@ -4,6 +4,8 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import AuthSessionProvider from '@/components/providers/session-provider'
 import { ThemeProvider } from '@/components/theme-provider'
+import CartProviderWrapper from '@/components/cart/cart-provider-wrapper'
+import { ErrorBoundary } from '@/components/error-boundary'
 import './globals.css'
 
 const inter = Inter({
@@ -70,11 +72,22 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  manifest: '/site.webmanifest',
+  manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon-16x16.png',
     apple: '/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'TShop',
+    startupImage: [
+      '/icons/icon-512x512.png',
+    ],
+  },
+  formatDetection: {
+    telephone: false,
   },
 }
 
@@ -85,12 +98,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="TShop" />
+        <meta name="theme-color" content="#6366f1" />
+        <meta name="msapplication-TileColor" content="#6366f1" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+      </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <ThemeProvider>
-          <AuthSessionProvider>
-            {children}
-          </AuthSessionProvider>
-        </ThemeProvider>
+        <ErrorBoundary>
+          <ThemeProvider>
+            <AuthSessionProvider>
+              <CartProviderWrapper>
+                {children}
+              </CartProviderWrapper>
+            </AuthSessionProvider>
+          </ThemeProvider>
+        </ErrorBoundary>
         <Analytics />
         <SpeedInsights />
       </body>

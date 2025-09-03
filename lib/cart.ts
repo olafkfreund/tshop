@@ -1,5 +1,15 @@
 import { CartItem, Cart } from '@/types'
-import { prisma } from '@/lib/db'
+import { 
+  getUserCartItems, 
+  getGuestCartItems, 
+  addToCart as addToCartDB,
+  updateCartItem as updateCartItemDB,
+  removeFromCart as removeFromCartDB,
+  clearCart as clearCartDB,
+  transferGuestCartToUser as transferGuestCartToUserDB,
+  cleanupOldCartItems as cleanupOldCartItemsDB,
+  getProductById
+} from '@/lib/db-direct'
 
 export class CartService {
   
@@ -7,22 +17,7 @@ export class CartService {
    * Get cart for authenticated user
    */
   static async getUserCart(userId: string): Promise<Cart> {
-    const cartItems = await prisma.cartItem.findMany({
-      where: { userId },
-      include: {
-        product: {
-          include: {
-            images: {
-              where: { isPrimary: true },
-              take: 1,
-            },
-          },
-        },
-        variant: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-
+    const cartItems = await getUserCartItems(userId)
     return this.buildCartFromItems(cartItems)
   }
 
@@ -30,22 +25,7 @@ export class CartService {
    * Get cart for guest user by session ID
    */
   static async getGuestCart(sessionId: string): Promise<Cart> {
-    const cartItems = await prisma.cartItem.findMany({
-      where: { sessionId },
-      include: {
-        product: {
-          include: {
-            images: {
-              where: { isPrimary: true },
-              take: 1,
-            },
-          },
-        },
-        variant: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-
+    const cartItems = await getGuestCartItems(sessionId)
     return this.buildCartFromItems(cartItems)
   }
 
@@ -60,40 +40,24 @@ export class CartService {
     quantity: number,
     customization?: any
   ): Promise<CartItem> {
-    // Check if item already exists in cart
-    const existingItem = await prisma.cartItem.findFirst({
-      where: {
-        AND: [
-          { productId },
-          { variantId },
-          userId ? { userId } : { sessionId },
-        ],
-      },
-    })
-
-    if (existingItem) {
-      // Update quantity if item exists
-      return await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: {
-          quantity: existingItem.quantity + quantity,
-          customization: customization || existingItem.customization,
-          updatedAt: new Date(),
-        },
-      })
+    const result = await addToCartDB(
+      userId,
+      sessionId,
+      productId,
+      variantId,
+      quantity,
+      customization
+    )
+    
+    return {
+      id: result.id,
+      productId: result.product_id,
+      variantId: result.variant_id,
+      quantity: result.quantity,
+      customization: result.customization,
+      product: null,
+      variant: null,
     }
-
-    // Create new cart item
-    return await prisma.cartItem.create({
-      data: {
-        userId,
-        sessionId,
-        productId,
-        variantId,
-        quantity,
-        customization,
-      },
-    })
   }
 
   /**
@@ -104,92 +68,38 @@ export class CartService {
     quantity: number,
     userId?: string
   ): Promise<CartItem> {
-    const whereClause: any = { id: itemId }
-    if (userId) {
-      whereClause.userId = userId
+    const result = await updateCartItemDB(itemId, quantity, userId)
+    
+    return {
+      id: result.id,
+      productId: result.product_id,
+      variantId: result.variant_id,
+      quantity: result.quantity,
+      customization: result.customization,
+      product: null,
+      variant: null,
     }
-
-    return await prisma.cartItem.update({
-      where: whereClause,
-      data: {
-        quantity,
-        updatedAt: new Date(),
-      },
-    })
   }
 
   /**
    * Remove item from cart
    */
   static async removeFromCart(itemId: string, userId?: string): Promise<void> {
-    const whereClause: any = { id: itemId }
-    if (userId) {
-      whereClause.userId = userId
-    }
-
-    await prisma.cartItem.delete({
-      where: whereClause,
-    })
+    await removeFromCartDB(itemId, userId)
   }
 
   /**
    * Clear entire cart
    */
   static async clearCart(userId: string | null, sessionId: string | null): Promise<void> {
-    const whereClause = userId ? { userId } : { sessionId }
-    
-    await prisma.cartItem.deleteMany({
-      where: whereClause,
-    })
+    await clearCartDB(userId, sessionId)
   }
 
   /**
    * Transfer guest cart to user account on login
    */
   static async transferGuestCartToUser(sessionId: string, userId: string): Promise<void> {
-    // Get existing user cart items
-    const userCartItems = await prisma.cartItem.findMany({
-      where: { userId },
-      select: { productId: true, variantId: true, id: true, quantity: true },
-    })
-
-    // Get guest cart items
-    const guestCartItems = await prisma.cartItem.findMany({
-      where: { sessionId },
-    })
-
-    for (const guestItem of guestCartItems) {
-      // Check if user already has this item
-      const existingUserItem = userCartItems.find(
-        item => item.productId === guestItem.productId && item.variantId === guestItem.variantId
-      )
-
-      if (existingUserItem) {
-        // Update quantity of existing user item
-        await prisma.cartItem.update({
-          where: { id: existingUserItem.id },
-          data: {
-            quantity: existingUserItem.quantity + guestItem.quantity,
-            updatedAt: new Date(),
-          },
-        })
-
-        // Delete guest item
-        await prisma.cartItem.delete({
-          where: { id: guestItem.id },
-        })
-      } else {
-        // Transfer guest item to user
-        await prisma.cartItem.update({
-          where: { id: guestItem.id },
-          data: {
-            userId,
-            sessionId: null,
-            updatedAt: new Date(),
-          },
-        })
-      }
-    }
+    await transferGuestCartToUserDB(sessionId, userId)
   }
 
   /**
@@ -241,13 +151,11 @@ export class CartService {
     const updatedItems: string[] = []
 
     for (const item of cart.items) {
-      // Check if product/variant still exists and is available
-      const variant = await prisma.productVariant.findUnique({
-        where: { id: item.variantId },
-        include: { product: true },
-      })
+      // Check if product still exists and get variant info
+      const product = await getProductById(item.productId)
+      const variant = product?.variants.find(v => v.id === item.variantId)
 
-      if (!variant || !variant.product) {
+      if (!product || !variant) {
         errors.push(`Item "${item.product?.name}" is no longer available`)
         await this.removeFromCart(item.id, userId || undefined)
         continue
@@ -256,10 +164,10 @@ export class CartService {
       // Check stock
       if (variant.stock < item.quantity) {
         if (variant.stock === 0) {
-          errors.push(`"${variant.product.name}" is out of stock`)
+          errors.push(`"${product.name}" is out of stock`)
           await this.removeFromCart(item.id, userId || undefined)
         } else {
-          errors.push(`Only ${variant.stock} of "${variant.product.name}" available`)
+          errors.push(`Only ${variant.stock} of "${product.name}" available`)
           await this.updateCartItem(item.id, variant.stock, userId || undefined)
           updatedItems.push(item.id)
         }
@@ -272,7 +180,7 @@ export class CartService {
       const priceChange = Math.abs(currentPrice - cartPrice) / cartPrice
 
       if (priceChange > 0.05) {
-        errors.push(`Price for "${variant.product.name}" has changed`)
+        errors.push(`Price for "${product.name}" has changed`)
         updatedItems.push(item.id)
       }
     }
@@ -347,16 +255,6 @@ export class CartService {
    * Clean up old cart items (cleanup job)
    */
   static async cleanupOldCartItems(): Promise<void> {
-    // Remove cart items older than 30 days
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-    await prisma.cartItem.deleteMany({
-      where: {
-        updatedAt: {
-          lt: thirtyDaysAgo,
-        },
-      },
-    })
+    await cleanupOldCartItemsDB()
   }
 }

@@ -4,20 +4,41 @@ import { AIGenerationRequest, AIGenerationResponse, ProductCategory } from '@/ty
 // External image generation function
 async function generateImageViaAPI(prompt: string, category: string): Promise<string | null> {
   try {
-    // For now, we'll use a free text-to-image API service
-    // You can replace this with DALL-E, Midjourney, or other services
+    console.log('Generating image for prompt:', prompt)
     
-    // Using a free service like Pollinations AI or similar
-    const response = await fetch('https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) + '?width=512&height=512&nologo=true')
+    // Try multiple image generation services with fallbacks
+    const services = [
+      // Pollinations AI (free but sometimes unreliable)
+      async () => {
+        const response = await fetch('https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) + '?width=512&height=512&nologo=true')
+        if (response.ok) return response.url
+        throw new Error('Pollinations AI failed')
+      },
+      
+      // Placeholder service (reliable fallback)
+      async () => {
+        const encodedPrompt = encodeURIComponent(prompt)
+        const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF']
+        const color = colors[Math.floor(Math.random() * colors.length)]
+        return `https://via.placeholder.com/512x512/${color.substring(1)}/FFFFFF?text=${encodedPrompt.substring(0, 20)}`
+      }
+    ]
     
-    if (response.ok) {
-      // Return the direct image URL
-      return response.url
+    // Try each service in order
+    for (const service of services) {
+      try {
+        const result = await service()
+        console.log('Image generation successful:', result)
+        return result
+      } catch (error) {
+        console.log('Service failed, trying next:', error)
+        continue
+      }
     }
     
     return null
   } catch (error) {
-    console.error('External image generation failed:', error)
+    console.error('All image generation services failed:', error)
     return null
   }
 }
@@ -38,7 +59,7 @@ if (hasApiKey) {
 
 // Product-specific constraints for AI generation
 const PRODUCT_CONSTRAINTS = {
-  tshirt: {
+  TSHIRT: {
     aspectRatio: '3:4',
     placement: 'center chest area',
     maxWidth: '10 inches',
@@ -46,7 +67,7 @@ const PRODUCT_CONSTRAINTS = {
     backgroundColor: 'transparent or solid colors that work on fabric',
     style: 'suitable for screen printing or DTG printing',
   },
-  cap: {
+  CAP: {
     aspectRatio: '2:1', 
     placement: 'front panel center',
     maxWidth: '4 inches',
@@ -54,7 +75,7 @@ const PRODUCT_CONSTRAINTS = {
     backgroundColor: 'transparent background',
     style: 'suitable for embroidery or vinyl application',
   },
-  'tote-bag': {
+  TOTE_BAG: {
     aspectRatio: '4:5',
     placement: 'main surface center',
     maxWidth: '8 inches', 
@@ -71,31 +92,88 @@ function buildProductSpecificPrompt(
 ): string {
   const constraints = PRODUCT_CONSTRAINTS[productCategory]
   
-  let enhancedPrompt = `Create a professional apparel design for a ${productCategory} with the following requirements:
+  // Product-specific design guidance
+  const productGuides = {
+    TSHIRT: {
+      context: "t-shirt apparel design",
+      placement: "centered on the chest area",
+      recommendations: [
+        "Bold, eye-catching graphics that work as focal points",
+        "Typography should be highly legible from a distance",
+        "Consider how the design will look when the shirt is worn and moves",
+        "Avoid designs that are too busy or cluttered",
+        "Think about color contrast with both light and dark shirt colors"
+      ]
+    },
+    CAP: {
+      context: "baseball cap/hat design",
+      placement: "front panel of the cap",
+      recommendations: [
+        "Compact, iconic designs that work at small sizes",
+        "Strong logo-style graphics that are instantly recognizable",
+        "Simple typography with bold, clean fonts",
+        "Consider the curved surface of the cap",
+        "Design should work in embroidery or vinyl application"
+      ]
+    },
+    TOTE_BAG: {
+      context: "canvas tote bag design",
+      placement: "main front surface of the bag",
+      recommendations: [
+        "Designs that complement the practical nature of tote bags",
+        "Text and graphics that remain readable when the bag is carried",
+        "Consider eco-friendly and lifestyle themes",
+        "Design should work well with natural canvas textures",
+        "Think about how the design looks when the bag has items inside"
+      ]
+    }
+  }
+
+  const guide = productGuides[productCategory]
+  const styleGuidance = style ? getStyleGuidance(style) : ""
+  
+  let enhancedPrompt = `Create a professional ${guide.context} with the following specifications:
 
 USER REQUEST: "${userPrompt}"
 
+PRODUCT CONTEXT: ${productCategory.toLowerCase().replace('_', ' ')}
+PLACEMENT: ${guide.placement}
+
 TECHNICAL CONSTRAINTS:
 - Aspect ratio: ${constraints.aspectRatio}
-- Placement: ${constraints.placement}
-- Maximum size: ${constraints.maxWidth} x ${constraints.maxHeight}
-- Background: ${constraints.backgroundColor}
+- Placement area: ${constraints.placement}
+- Maximum print size: ${constraints.maxWidth} x ${constraints.maxHeight}
+- Background requirements: ${constraints.backgroundColor}
 - Print method: ${constraints.style}
 
-DESIGN REQUIREMENTS:
+DESIGN EXCELLENCE CRITERIA:
+${guide.recommendations.map(rec => `- ${rec}`).join('\n')}
 - High contrast and readability when printed on fabric
-- Scalable vector-style design elements
-- Clean, professional appearance
-- Colors that reproduce well in printing
-- Avoid fine details that may not print clearly`
+- Scalable vector-style design elements that print clearly
+- Professional appearance suitable for retail
+- Colors that reproduce accurately in printing processes
+- Avoid fine details smaller than 2mm that may not print clearly`
 
-  if (style) {
-    enhancedPrompt += `\n- Style preference: ${style}`
+  if (styleGuidance) {
+    enhancedPrompt += `\n\nSTYLE DIRECTION:\n${styleGuidance}`
   }
 
-  enhancedPrompt += `\n\nGenerate an image that meets these specifications and would look excellent on a ${productCategory}.`
+  enhancedPrompt += `\n\nOutput: Generate a high-quality, print-ready design image that perfectly fits ${guide.context} and would look excellent when professionally printed on a ${productCategory.toLowerCase().replace('_', ' ')}.`
 
   return enhancedPrompt
+}
+
+function getStyleGuidance(style: string): string {
+  const styleGuides = {
+    realistic: "Create photorealistic elements with natural lighting and textures. Use detailed rendering and lifelike proportions.",
+    cartoon: "Use bold, simplified shapes with clean lines. Employ bright, vibrant colors and playful character-like elements.",
+    minimalist: "Focus on simple geometric shapes, negative space, and limited color palettes. Emphasize clean, modern aesthetics.",
+    vintage: "Incorporate retro design elements, distressed textures, classic typography, and muted or sepia color schemes.",
+    modern: "Use contemporary design principles with sleek lines, gradients, and current typography trends. Focus on sophistication.",
+    artistic: "Embrace creative expression with painterly effects, abstract elements, and unique artistic interpretations."
+  }
+  
+  return styleGuides[style as keyof typeof styleGuides] || `Apply ${style} styling to the design.`
 }
 
 export async function generateDesignImage(
@@ -226,37 +304,43 @@ Make it detailed enough that someone could recreate the design from your descrip
   }
 }
 
-// Mock suggestions for local development
+// Enhanced mock suggestions for local development
 const MOCK_SUGGESTIONS = {
   TSHIRT: [
-    'Mountain Silhouette',
-    'Vintage Band Logo', 
-    'Geometric Pattern',
-    'City Skyline',
-    'Abstract Art',
-    'Nature Quote',
-    'Minimalist Design',
-    'Retro Sunset'
+    'Majestic mountain range with golden sunrise',
+    'Vintage motorcycle with classic typography', 
+    'Sacred geometry mandala with cosmic colors',
+    'Neon cyberpunk cityscape at night',
+    'Abstract watercolor splash in vibrant hues',
+    'Minimalist nature quote in elegant script',
+    'Retro 80s synthwave sunset aesthetic',
+    'Hand-drawn wildflower botanical illustration',
+    'Bold geometric lion portrait',
+    'Constellation map with celestial details'
   ],
   CAP: [
-    'Team Logo',
-    'City Name',
-    'Simple Icon', 
-    'Monogram',
-    'Sports Theme',
-    'Brand Symbol',
-    'Number Design',
-    'Text Logo'
+    'Classic baseball team emblem design',
+    'City skyline silhouette with bold text',
+    'Minimalist compass icon with coordinates', 
+    'Vintage-style monogram with decorative frame',
+    'Athletic number in distressed sports font',
+    'Mountain peak logo with adventure theme',
+    'Retro surf wave design',
+    'Coffee cup icon with steam details',
+    'Anchor symbol with nautical rope',
+    'Pine tree forest minimal logo'
   ],
   TOTE_BAG: [
-    'Eco Message',
-    'Coffee Theme',
-    'Book Lover',
-    'Plant Design',
-    'Market Bag',
-    'Daily Mantra',
-    'Simple Quote',
-    'Abstract Pattern'
+    'Save the planet with earth illustration',
+    'But first coffee with bean pattern',
+    'Bookworm paradise with stack of books',
+    'Succulent garden with hand-drawn plants',
+    'Fresh market vibes with fruit icons',
+    'Daily affirmation in beautiful calligraphy',
+    'Adventure awaits with mountain compass',
+    'Botanical herbs with vintage labels',
+    'Ocean waves with environmental message',
+    'Art supplies scattered aesthetic'
   ]
 } as const
 

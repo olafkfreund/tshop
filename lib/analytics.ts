@@ -383,6 +383,20 @@ class Analytics {
         error_severity: severity,
       },
     })
+
+    // Also track with Sentry if available
+    if (typeof window !== 'undefined' && (window as any).Sentry) {
+      try {
+        const Sentry = (window as any).Sentry
+        Sentry.withScope((scope: any) => {
+          scope.setTag('severity', severity)
+          scope.setContext('analytics_context', { context })
+          Sentry.captureMessage(`Analytics Error: ${error}`, severity === 'high' ? 'error' : 'warning')
+        })
+      } catch (sentryError) {
+        console.error('Failed to send error to Sentry:', sentryError)
+      }
+    }
   }
 }
 

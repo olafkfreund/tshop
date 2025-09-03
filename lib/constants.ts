@@ -95,6 +95,45 @@ export const ORDER_STATUS_FLOW = [
   'delivered',
 ] as const
 
+// Font families for text editing
+export const FONT_FAMILIES = [
+  { name: 'Arial', family: 'Arial, sans-serif', category: 'Sans-serif' },
+  { name: 'Helvetica', family: 'Helvetica, Arial, sans-serif', category: 'Sans-serif' },
+  { name: 'Times New Roman', family: 'Times New Roman, Times, serif', category: 'Serif' },
+  { name: 'Georgia', family: 'Georgia, serif', category: 'Serif' },
+  { name: 'Verdana', family: 'Verdana, sans-serif', category: 'Sans-serif' },
+  { name: 'Courier New', family: 'Courier New, Courier, monospace', category: 'Monospace' },
+  { name: 'Impact', family: 'Impact, Arial Black, sans-serif', category: 'Display' },
+  { name: 'Comic Sans MS', family: 'Comic Sans MS, cursive', category: 'Casual' },
+  { name: 'Trebuchet MS', family: 'Trebuchet MS, sans-serif', category: 'Sans-serif' },
+  { name: 'Palatino', family: 'Palatino, serif', category: 'Serif' },
+] as const
+
+// Font sizes for text editing
+export const FONT_SIZES = [
+  8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 42, 48, 56, 64, 72, 84, 96
+] as const
+
+// Text alignment options
+export const TEXT_ALIGNMENTS = [
+  { value: 'left', label: 'Left', icon: 'AlignLeft' },
+  { value: 'center', label: 'Center', icon: 'AlignCenter' },
+  { value: 'right', label: 'Right', icon: 'AlignRight' },
+] as const
+
+// Company branding settings
+export const COMPANY_BRANDING = {
+  logo: {
+    url: '/images/branding/tshop-logo.svg',
+    altText: 'TShop Logo',
+    placement: {
+      TSHIRT: { back: { x: 'center', y: 'top', width: 60, height: 20, offsetY: 40 } },
+      CAP: { back: { x: 'center', y: 'center', width: 40, height: 12 } },
+      TOTE_BAG: { back: { x: 'center', y: 'bottom', width: 50, height: 16, offsetY: -30 } },
+    }
+  }
+} as const
+
 // Fulfillment providers
 export const FULFILLMENT_PROVIDERS = {
   printful: {

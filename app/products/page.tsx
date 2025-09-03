@@ -1,181 +1,180 @@
-import { Suspense } from 'react'
+import { getProducts } from '@/lib/db-direct'
+import { PRODUCT_PRICES } from '@/lib/stripe'
 import Link from 'next/link'
-import { ProductCategory } from '@prisma/client'
-import { PRODUCT_CATEGORIES } from '@/lib/constants'
-import { prisma } from '@/lib/db'
-import { formatPrice } from '@/lib/utils'
-import Header from '@/components/navigation/header'
-import { getMockProducts } from '@/lib/mock-products'
+import { Search, Grid3X3, List } from 'lucide-react'
+import { CompactSocialShare } from '@/components/social/social-share'
 
-interface ProductsPageProps {
-  searchParams: { category?: string }
+interface SearchParams {
+  design?: string
+  category?: string
+  search?: string
+  sort?: string
+  view?: 'grid' | 'list'
 }
 
-async function getProducts(category?: ProductCategory) {
-  // Always use mock data for development since database is not available
-  console.log('📦 Using mock products data (database not available)')
-  const mockProducts = getMockProducts(category)
-  
-  // Transform mock data to match expected format
-  return mockProducts.map(product => ({
-    ...product,
-    images: product.images.map(img => ({
-      ...img,
-      isPrimary: img.position === 0
-    })),
-    variants: product.variants || []
-  }))
-}
+export default async function ProductsPage({ searchParams }: { searchParams: SearchParams }) {
+  const products = await getProducts()
+  const { design, category, search, sort = 'name', view = 'grid' } = searchParams
 
-function ProductsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 gap-6
-                    sm:grid-cols-2
-                    lg:grid-cols-3">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="card overflow-hidden animate-pulse">
-          <div className="aspect-square bg-gray-200"></div>
-          <div className="p-6">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-full mb-4"></div>
-            <div className="h-6 bg-gray-200 rounded w-20"></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
+  // Simple filtering
+  let filteredProducts = products
 
-async function ProductGrid({ category }: { category?: ProductCategory }) {
-  const products = await getProducts(category)
+  if (category) {
+    filteredProducts = filteredProducts.filter(p => p.category.toUpperCase() === category.toUpperCase())
+  }
 
-  if (products.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto h-12 w-12 text-muted-foreground">
-          <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.75 7.5h16.5-1.5V6a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 6v1.5z" />
-          </svg>
-        </div>
-        <h3 className="mt-2 text-sm font-medium text-foreground">No products found</h3>
-        <p className="mt-1 text-sm text-muted-foreground">Get started by adding some products.</p>
-      </div>
+  if (search) {
+    const searchTerm = search.toLowerCase()
+    filteredProducts = filteredProducts.filter(p => 
+      p.name.toLowerCase().includes(searchTerm) ||
+      p.description.toLowerCase().includes(searchTerm)
     )
   }
 
-  return (
-    <div className="grid grid-cols-1 gap-6
-                    sm:grid-cols-2
-                    lg:grid-cols-3">
-      {products.map((product) => {
-        const primaryImage = product.images.find((img: any) => img.isPrimary || img.position === 0) || product.images[0]
-        const lowestPrice = product.variants[0]?.price || product.basePrice
-        
-        return (
-          <Link 
-            key={product.id} 
-            href={`/products/${product.id}`}
-            className="card overflow-hidden hover:shadow-lg transition-shadow"
-          >
-            <div className="aspect-square bg-muted/20">
-              {primaryImage ? (
-                <img
-                  src={primaryImage.url}
-                  alt={primaryImage.altText || product.name}
-                  className="h-full w-full object-cover object-center"
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center">
-                  <svg className="h-12 w-12 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                  </svg>
-                </div>
-              )}
-            </div>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {product.name}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                {product.description}
-              </p>
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-medium text-foreground">
-                  From {formatPrice(Number(lowestPrice))}
-                </p>
-                <span className="text-sm text-primary font-medium">
-                  Customize →
-                </span>
-              </div>
-            </div>
-          </Link>
-        )
-      })}
-    </div>
-  )
-}
+  // Simple sorting
+  if (sort === 'price-low') {
+    filteredProducts = filteredProducts.sort((a, b) => {
+      const priceA = a.category === 'CAP' ? PRODUCT_PRICES.CAP.base : 
+                    a.category === 'TOTE_BAG' ? PRODUCT_PRICES.TOTE_BAG.base : 2499
+      const priceB = b.category === 'CAP' ? PRODUCT_PRICES.CAP.base : 
+                    b.category === 'TOTE_BAG' ? PRODUCT_PRICES.TOTE_BAG.base : 2499
+      return priceA - priceB
+    })
+  }
 
-export default function ProductsPage({ searchParams }: ProductsPageProps) {
-  const category = searchParams.category as ProductCategory | undefined
+  const availableCategories = ['TSHIRT', 'CAP', 'TOTE_BAG']
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      {/* Header */}
-      <div className="bg-muted/30 border-b">
-        <div className="container mx-auto px-4 py-8
-                        sm:px-6
-                        lg:px-8">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground
-                          sm:text-4xl">
-              {category && PRODUCT_CATEGORIES[category] 
-                ? PRODUCT_CATEGORIES[category]
-                : 'All Products'
-              }
-            </h1>
-            <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-              Create amazing custom apparel with our premium products and AI-powered design tools.
-            </p>
-          </div>
-
-          {/* Category Navigation */}
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link
-              href="/products"
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                !category
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card text-foreground hover:bg-muted border'
-              }`}
-            >
-              All Products
-            </Link>
-            {Object.entries(PRODUCT_CATEGORIES).map(([key, value]) => (
-              <Link
-                key={key}
-                href={`/products?category=${key}`}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  category === key
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card text-foreground hover:bg-muted border'
-                }`}
-              >
-                {value}
-              </Link>
-            ))}
-          </div>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+          <p className="mt-2 text-gray-600">
+            High-quality apparel ready for your custom designs
+          </p>
         </div>
-      </div>
 
-      {/* Products Grid */}
-      <div className="container mx-auto px-4 py-12
-                      sm:px-6
-                      lg:px-8">
-        <Suspense fallback={<ProductsSkeleton />}>
-          <ProductGrid category={category} />
-        </Suspense>
+        {/* Simple Search Bar */}
+        <form method="GET" className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                name="search"
+                defaultValue={search}
+                placeholder="Search products..."
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            <select name="category" defaultValue={category || ''} className="border border-gray-300 rounded-md py-2 px-3">
+              <option value="">All Categories</option>
+              {availableCategories.map(cat => (
+                <option key={cat} value={cat}>{cat.replace('_', ' ')}</option>
+              ))}
+            </select>
+
+            <select name="sort" defaultValue={sort} className="border border-gray-300 rounded-md py-2 px-3">
+              <option value="name">Sort by Name</option>
+              <option value="price-low">Price: Low to High</option>
+            </select>
+
+            {design && <input type="hidden" name="design" value={design} />}
+            
+            <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+              Search
+            </button>
+          </div>
+        </form>
+
+        {/* Results */}
+        <div className="mb-6">
+          <p className="text-sm text-gray-700">
+            Showing {filteredProducts.length} of {products.length} products
+          </p>
+        </div>
+
+        {/* Products Grid */}
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900">No products found</h3>
+            <p className="text-gray-500">Try adjusting your search or filters</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => {
+              let pricing = { base: 2499, premium: 3499 }
+              if (product.category === 'CAP') pricing = PRODUCT_PRICES.CAP
+              else if (product.category === 'TOTE_BAG') pricing = PRODUCT_PRICES.TOTE_BAG
+
+              const basePrice = pricing.base / 100
+              const primaryImage = product.images?.find(img => img.is_primary)
+
+              return (
+                <div key={product.id} className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                  <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden">
+                    {primaryImage ? (
+                      <img
+                        src={primaryImage.url}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-gray-400">No Image</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-3">
+                      {product.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-semibold text-gray-900">
+                        ${basePrice.toFixed(2)}
+                      </span>
+                      {product.variants && (
+                        <span className="text-sm text-gray-500">
+                          {product.variants.length} variants
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Link
+                        href={`/products/${product.id}${design ? `?design=${encodeURIComponent(design)}` : ''}`}
+                        className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                      >
+                        {design ? 'Customize & Order' : 'View Product'}
+                      </Link>
+                      <CompactSocialShare
+                        type="product"
+                        item={{
+                          id: product.id,
+                          name: product.name,
+                          imageUrl: primaryImage?.url || '/images/placeholder.png',
+                          description: product.description,
+                          product: {
+                            name: product.name,
+                            type: product.category
+                          }
+                        }}
+                        showCount={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )

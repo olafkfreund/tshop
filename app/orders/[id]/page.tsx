@@ -16,6 +16,7 @@ import {
   CreditCard,
   Receipt
 } from 'lucide-react'
+import PostPurchaseShare from '@/components/social/post-purchase-share'
 
 interface OrderPageProps {
   params: { id: string }
@@ -439,6 +440,37 @@ export default async function OrderPage({ params }: OrderPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Post-Purchase Social Sharing */}
+      <PostPurchaseShare
+        order={{
+          id: order.id,
+          items: order.items.map(item => ({
+            id: item.id,
+            product: {
+              name: item.product.name,
+              images: item.product.images
+            },
+            design: item.design ? {
+              name: item.design.name,
+              imageUrl: item.design.imageUrl
+            } : undefined,
+            variant: {
+              colorName: item.variant.colorName,
+              sizeName: item.variant.sizeName
+            },
+            quantity: item.quantity
+          })),
+          total: order.total,
+          createdAt: order.createdAt
+        }}
+        onShare={(platform) => {
+          console.log(`Order shared on ${platform}`)
+        }}
+        onDismiss={() => {
+          console.log('Post-purchase share dismissed')
+        }}
+      />
     </div>
   )
 }

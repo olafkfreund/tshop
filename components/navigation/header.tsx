@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { Menu, X, ShoppingCart, User, LogIn, LogOut } from 'lucide-react'
 import { ThemeToggle } from '@/components/theme-toggle'
+import CartDropdown from '@/components/cart/cart-dropdown'
+import AdminLink from '@/components/admin/admin-link'
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -13,8 +15,8 @@ export default function Header() {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Products', href: '/products' },
-    { name: 'Design', href: '/design' },
-    { name: 'Gallery', href: '/gallery' },
+    { name: 'AI Design', href: '/ai-design' },
+    { name: 'Orders', href: '/orders' },
   ]
 
   return (
@@ -52,18 +54,12 @@ export default function Header() {
             <ThemeToggle />
 
             {/* Cart */}
-            <Link
-              href="/cart"
-              className="btn-ghost btn-icon"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {/* Cart badge would go here */}
-            </Link>
+            <CartDropdown />
 
             {/* User Menu */}
             {status === 'loading' ? (
               <div className="h-8 w-8 bg-muted rounded-full animate-pulse"></div>
-            ) : session ? (
+            ) : session?.user ? (
               <div className="relative group">
                 <button className="flex items-center space-x-2 text-muted-foreground hover:text-primary p-2">
                   {session.user.image ? (
@@ -99,6 +95,7 @@ export default function Header() {
                     >
                       My Designs
                     </Link>
+                    <AdminLink />
                     <div className="border-t">
                       <button
                         onClick={() => signOut()}

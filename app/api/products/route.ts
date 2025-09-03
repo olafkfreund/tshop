@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { getProducts, testConnection } from '@/lib/db-direct'
 import { getMockProducts } from '@/lib/mock-products'
 
 export async function GET(request: NextRequest) {
@@ -15,40 +15,32 @@ export async function GET(request: NextRequest) {
 
     try {
       // Try to use real database first
-      const where: any = {}
+      const dbProducts = await getProducts()
+      
+      // Filter by category if provided
+      let filteredProducts = dbProducts
       if (category) {
-        where.category = category
+        filteredProducts = dbProducts.filter(p => p.category === category.toUpperCase())
       }
-
-      const [dbProducts, dbTotal] = await Promise.all([
-        prisma.product.findMany({
-          where,
-          include: {
-            images: {
-              orderBy: { isPrimary: 'desc' },
-            },
-            variants: {
-              orderBy: { price: 'asc' },
-            },
-            specs: true,
-          },
-          skip,
-          take: limit,
-          orderBy: { createdAt: 'desc' },
-        }),
-        prisma.product.count({ where }),
-      ])
-
-      products = dbProducts
-      total = dbTotal
+      
+      total = filteredProducts.length
+      
+      // Apply pagination
+      products = filteredProducts.slice(skip, skip + limit)
 
       // If no products from database, use mock data
-      if (products.length === 0) {
+      if (products.length === 0 && total === 0) {
         throw new Error('No products in database, falling back to mock data')
       }
 
     } catch (dbError) {
-      console.log('📦 Using mock products data (database not available)')
+      console.error('📦 Database error, using mock products data:', dbError)
+      
+      // Test connection to provide better debugging
+      const connectionHealthy = await testConnection()
+      if (!connectionHealthy) {
+        console.error('❌ Database connection test failed')
+      }
       
       // Use mock products
       const mockProducts = getMockProducts(category || undefined)

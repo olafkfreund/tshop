@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db'
+import { query } from '@/lib/db-direct'
 import { AI_USAGE_LIMITS } from '@/lib/constants'
 
 // AI tier constants (using strings for SQLite compatibility)
@@ -21,27 +21,30 @@ export interface UsageCheckResult {
 export class AIUsageLimiter {
   static async checkUsage(userId: string): Promise<UsageCheckResult> {
     try {
-      let usage = await prisma.aIUsageStats.findUnique({
-        where: { userId },
-      })
+      let usageRows = await query(
+        'SELECT * FROM ai_usage_stats WHERE user_id = $1',
+        [userId]
+      )
+
+      let usage = usageRows[0]
 
       // Create usage stats if they don't exist
       if (!usage) {
-        usage = await prisma.aIUsageStats.create({
-          data: {
-            userId,
-            tier: 'REGISTERED',
-          },
-        })
+        const newUsageRows = await query(`
+          INSERT INTO ai_usage_stats (id, user_id, tier, daily_count, monthly_count, total_count, last_reset, created_at, updated_at)
+          VALUES (gen_random_uuid()::text, $1, 'REGISTERED', 0, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          RETURNING *
+        `, [userId])
+        usage = newUsageRows[0]
       }
 
       const now = new Date()
-      const lastReset = new Date(usage.lastReset)
+      const lastReset = new Date(usage.last_reset)
       const limits = AI_USAGE_LIMITS[usage.tier]
 
       // Reset daily count if it's a new day
-      let dailyCount = usage.dailyCount
-      let monthlyCount = usage.monthlyCount
+      let dailyCount = usage.daily_count
+      let monthlyCount = usage.monthly_count
       let needsUpdate = false
 
       // Check if we need to reset daily counter
@@ -61,14 +64,10 @@ export class AIUsageLimiter {
 
       // Update reset time if needed
       if (needsUpdate) {
-        await prisma.aIUsageStats.update({
-          where: { userId },
-          data: {
-            dailyCount,
-            monthlyCount,
-            lastReset: now,
-          },
-        })
+        await query(
+          'UPDATE ai_usage_stats SET daily_count = $1, monthly_count = $2, last_reset = $3, updated_at = CURRENT_TIMESTAMP WHERE user_id = $4',
+          [dailyCount, monthlyCount, now, userId]
+        )
       }
 
       const remainingDaily = Math.max(0, limits.daily - dailyCount)
@@ -102,14 +101,10 @@ export class AIUsageLimiter {
 
   static async recordUsage(userId: string, tokensUsed: number = 1): Promise<void> {
     try {
-      await prisma.aIUsageStats.update({
-        where: { userId },
-        data: {
-          dailyCount: { increment: 1 },
-          monthlyCount: { increment: 1 },
-          totalCount: { increment: 1 },
-        },
-      })
+      await query(
+        'UPDATE ai_usage_stats SET daily_count = daily_count + 1, monthly_count = monthly_count + 1, total_count = total_count + 1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1',
+        [userId]
+      )
     } catch (error) {
       console.error('Error recording AI usage:', error)
     }
@@ -123,16 +118,18 @@ export class AIUsageLimiter {
     limits: any
   } | null> {
     try {
-      const usage = await prisma.aIUsageStats.findUnique({
-        where: { userId },
-      })
+      const usageRows = await query(
+        'SELECT * FROM ai_usage_stats WHERE user_id = $1',
+        [userId]
+      )
 
+      const usage = usageRows[0]
       if (!usage) return null
 
       return {
-        daily: usage.dailyCount,
-        monthly: usage.monthlyCount,
-        total: usage.totalCount,
+        daily: usage.daily_count,
+        monthly: usage.monthly_count,
+        total: usage.total_count,
         tier: usage.tier as AITierType,
         limits: AI_USAGE_LIMITS[usage.tier as keyof typeof AI_USAGE_LIMITS],
       }
@@ -144,10 +141,10 @@ export class AIUsageLimiter {
 
   static async upgradeTier(userId: string, newTier: AITierType): Promise<boolean> {
     try {
-      await prisma.aIUsageStats.update({
-        where: { userId },
-        data: { tier: newTier },
-      })
+      await query(
+        'UPDATE ai_usage_stats SET tier = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+        [newTier, userId]
+      )
       return true
     } catch (error) {
       console.error('Error upgrading tier:', error)
@@ -158,26 +155,25 @@ export class AIUsageLimiter {
   // Grant bonus uses for purchases
   static async grantBonusUses(userId: string, bonusCount: number = 5): Promise<void> {
     try {
-      const usage = await prisma.aIUsageStats.findUnique({
-        where: { userId },
-      })
-
+      const usageRows = await query(
+        'SELECT * FROM ai_usage_stats WHERE user_id = $1',
+        [userId]
+      )
+      
+      const usage = usageRows[0]
       if (!usage) return
 
       const limits = AI_USAGE_LIMITS[usage.tier]
       
       // Add bonus to daily (capped at limit + bonus)
-      const newDailyCount = Math.max(0, usage.dailyCount - bonusCount)
+      const newDailyCount = Math.max(0, usage.daily_count - bonusCount)
       // Add bonus to monthly (capped at limit + bonus) 
-      const newMonthlyCount = Math.max(0, usage.monthlyCount - bonusCount)
+      const newMonthlyCount = Math.max(0, usage.monthly_count - bonusCount)
 
-      await prisma.aIUsageStats.update({
-        where: { userId },
-        data: {
-          dailyCount: newDailyCount,
-          monthlyCount: newMonthlyCount,
-        },
-      })
+      await query(
+        'UPDATE ai_usage_stats SET daily_count = $1, monthly_count = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3',
+        [newDailyCount, newMonthlyCount, userId]
+      )
     } catch (error) {
       console.error('Error granting bonus uses:', error)
     }

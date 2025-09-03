@@ -4,7 +4,7 @@ import { ProductCategory } from '@/types'
 import { z } from 'zod'
 
 const suggestionsRequestSchema = z.object({
-  productCategory: z.enum(['tshirt', 'cap', 'tote-bag']),
+  productCategory: z.enum(['TSHIRT', 'CAP', 'TOTE_BAG']),
   count: z.number().min(1).max(20).default(5),
 })
 

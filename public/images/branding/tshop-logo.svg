@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle for T -->
+  <circle cx="20" cy="20" r="16" fill="url(#logoGradient)" />
+  
+  <!-- T shape -->
+  <rect x="12" y="10" width="16" height="3" fill="white" />
+  <rect x="18.5" y="10" width="3" height="20" fill="white" />
+  
+  <!-- TShop text -->
+  <text x="45" y="25" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">
+    TShop
+  </text>
+  
+  <!-- Tagline -->
+  <text x="45" y="35" font-family="Arial, sans-serif" font-size="8" fill="#6B7280">
+    AI-Powered Design
+  </text>
+</svg>
