@@ -3,6 +3,7 @@ import { PRODUCT_PRICES } from '@/lib/stripe'
 import Link from 'next/link'
 import { Search, Grid3X3, List } from 'lucide-react'
 import { CompactSocialShare } from '@/components/social/social-share'
+import Header from '@/components/navigation/header'
 
 interface SearchParams {
   design?: string
@@ -45,7 +46,9 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const availableCategories = ['TSHIRT', 'CAP', 'TOTE_BAG']
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -175,6 +178,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             })}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

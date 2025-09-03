@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { AI_STYLES } from '@/lib/constants'
 import { useAnalytics } from '@/lib/analytics'
+import Header from '@/components/navigation/header'
 
 // Product categories with display names
 const PRODUCT_CATEGORIES = [
@@ -234,7 +235,9 @@ export default function AIDesignPage() {
   const suggestions = DESIGN_SUGGESTIONS[formData.productCategory as keyof typeof DESIGN_SUGGESTIONS]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
+      <Header />
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
@@ -482,6 +485,7 @@ export default function AIDesignPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

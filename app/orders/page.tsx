@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { getOrdersByUserId } from '@/lib/db-direct'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Header from '@/components/navigation/header'
 
 export default async function OrdersPage() {
   const session = await auth()
@@ -13,7 +14,9 @@ export default async function OrdersPage() {
   const orders = await getOrdersByUserId(session.user.id)
   
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Your Orders</h1>
@@ -124,6 +127,7 @@ export default async function OrdersPage() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </div>
   )

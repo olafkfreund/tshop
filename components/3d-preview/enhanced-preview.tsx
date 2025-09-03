@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ProductCategory } from '@prisma/client'
-import { Cube, Image, RotateCcw, ZoomIn, ZoomOut, Maximize2, Camera } from 'lucide-react'
+import { Box, Image, RotateCcw, ZoomIn, ZoomOut, Maximize2, Camera } from 'lucide-react'
 import ThreeDTShirt from './three-d-tshirt'
 import RealisticMockup from './realistic-mockup'
 import CapCameraAR from '@/components/ar-preview/cap-camera-ar'
@@ -165,7 +165,7 @@ export default function EnhancedPreview({
                         : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
-                    <Cube className="h-4 w-4" />
+                    <Box className="h-4 w-4" />
                     <span>3D</span>
                   </button>
                 )}
